@@ -1,3 +1,9 @@
+# T-09 Project 2 (G-Spotter)
+
+Our plan/spec as it is now, is outlined in [./docs/inital-plan.md](./docs/initial-plan.md)
+
+## Below is the default TanStack Start readme, it will be replaced
+
 Welcome to your new TanStack Start app!
 
 # Getting Started

@@ -13,8 +13,84 @@ datasource db {
   provider = "postgresql"
 }
 
-model Todo {
-  id        Int      @id @default(autoincrement())
-  title     String
-  createdAt DateTime @default(now())
+enum GlassSize {
+  PINT @map("PINT")
+  HALF_LITER @map("HALF_LITER")
+  QUARTER_LITER @map("QUARTER_LITER")
+  BOX @map("BOX")
+  OTHER @map("OTHER")
+
+  @@map("glass_size")
+}
+
+enum Limitations {
+  TIME @map("TIME")
+  MEMBERSHIP @map("MEMBERSHIP")
+
+  @@map("limitations")
+}
+
+enum Day {
+  MON @map("MON")
+  TUE @map("TUE")
+  WED @map("WED")
+  THU @map("THU")
+  FRI @map("FRI")
+  SAT @map("SAT")
+  SUN @map("SUN")
+
+  @@map("day")
+}
+
+model Venue {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String
+  address String
+
+  openingHours OpeningHours[]
+
+  cityId String @db.Uuid @map("city_id")
+  city City @relation(fields: [cityId], references: [id])
+
+  pricesSighted PriceSighting[]
+
+  @@map("venue")
+}
+
+model OpeningHours {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  days Day[]
+  opening DateTime @db.Timestamptz()
+  closing DateTime @db.Timestamptz()
+
+  venueId String @db.Uuid @map("venue_id")
+  venues Venue @relation(fields: [venueId], references: [id])
+
+  @@map("opening_hours")
+}
+
+model City {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String
+  centreLon String @map("centre_lon")
+  centreLat String @map("centre_lat")
+
+  venues Venue[]
+
+  @@map("city")
+}
+
+model PriceSighting {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  price Float
+  size GlassSize
+  limitation Limitations[]
+  timeStart DateTime? @db.Timestamptz() @map("time_start")
+  timeEnd  DateTime? @db.Timestamptz() @map("time_end")
+  sizeMl Float? @map("size_ml")
+
+  venueId String @db.Uuid @map("venue_id")
+  venue Venue @relation(fields: [venueId], references: [id])
+
+  @@map("price_sighting")
 }

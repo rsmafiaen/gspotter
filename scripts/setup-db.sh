@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DB_USER=gspot
+DB_PASSWORD=gspotter
+DB_NAME=gspot
+
+if ! command -v apt-get >/dev/null 2>&1; then
+  echo "This script targets Ubuntu/Debian (apt-based) systems." >&2
+  echo "On macOS, install PostgreSQL with Homebrew instead." >&2
+  exit 1
+fi
+
+if [[ ${EUID} -ne 0 ]]; then
+  echo "Root privileges required, re-running with sudo..." >&2
+  exec sudo bash "$0" "$@"
+fi
+
+apt-get update -y
+
+if ! apt-get install -y postgresql-16; then
+  apt-get install -y postgresql
+fi
+
+systemctl enable --now postgresql
+
+if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1; then
+  sudo -u postgres psql -c "CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}'"
+fi
+
+if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | grep -q 1; then
+  sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
+fi
+
+echo "PostgreSQL is installed and running on localhost:5432"
+echo "Set the following in packages/db/.env and apps/backend/.env:"
+echo "DATABASE_URL=\"postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}\""

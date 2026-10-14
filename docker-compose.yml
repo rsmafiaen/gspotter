@@ -1,0 +1,11 @@
+services:
+  db:
+    container_name: g_spotter_db
+    image: postgres:16-alpine@sha256:b7587f3cb74f4f4b2a4f9d67f052edbf95eb93f4fec7c5ada3792546caaf7383
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: gspotter
+      POSTGRES_USER: gspot
+      POSTGRES_DB: gspot
+    ports:
+      - '5432:5432'

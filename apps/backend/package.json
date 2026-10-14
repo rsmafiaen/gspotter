@@ -1,0 +1,23 @@
+{
+  "name": "@t09-project-2/backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "dotenv -e .env -- tsx watch src/index.ts",
+    "start": "dotenv -e .env -- tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "@pothos/core": "^4.0.0",
+    "@pothos/plugin-prisma": "^4.0.0",
+    "@t09-project-2/db": "workspace:*",
+    "graphql": "^16.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "dotenv-cli": "^11.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  }
+}

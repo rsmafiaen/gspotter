@@ -18,7 +18,7 @@ Before a pull request can be merged:
    request, and approvals from staff do not count — you review each other's
    code.
 2. **Every review comment must be marked resolved.** Reply to each one, fix it
-   or explain why not, then click *Resolve conversation*.
+   or explain why not, then click _Resolve conversation_.
 3. **Pushing new commits dismisses the approval**, so if you change something
    after being approved, ask for another review. This is deliberate: what was
    approved is what gets merged.

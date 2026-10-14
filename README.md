@@ -2,6 +2,77 @@
 
 Our plan/spec as it is now, is outlined in [./docs/inital-plan.md](./docs/initial-plan.md)
 
+## Monorepo structure
+
+This project is a pnpm workspace monorepo:
+
+```text
+apps/
+  frontend/   TanStack Start app (React + Vite, port 3000)
+  backend/    Apollo Server + GraphQL API (Pothos + Prisma, port 4000)
+packages/
+  db/         Prisma schema, generated client, migrations and seed
+```
+
+The backend builds its GraphQL schema with [Pothos](https://pothos-graphql.dev) and
+the [Prisma plugin](https://pothos-graphql.dev/docs/plugins/prisma), which maps each
+GraphQL selection set to a matching Prisma `select`/`include`. Queries only touch the
+columns and relations the client actually asked for.
+
+## Getting started
+
+```bash
+# Set up the database
+# You can decide to run postgres as a service locally, or use the docker compose script provided to start a container
+pnpm db:setup # Runs a script to set up a bare-metal postgres instance with the correct setup
+# OR
+docker compose up -d
+
+# install dependencies for all workspaces
+pnpm install
+
+# set up the database connection in each package
+cp packages/db/.env.example packages/db/.env
+cp apps/backend/.env.example apps/backend/.env
+
+# create the database schema and optionally seed it
+pnpm db:generate
+pnpm db:push
+pnpm db:seed
+
+# run the frontend and backend together with live reload
+pnpm dev
+```
+
+Frontend: http://localhost:3000 · GraphQL API: http://localhost:4000
+
+### Commands
+
+| Command                                    | What it does                                           |
+| ------------------------------------------ | ------------------------------------------------------ |
+| `pnpm install` / `pnpm install:all`        | Install dependencies in all workspaces                 |
+| `pnpm dev`                                 | Run frontend and backend concurrently with live reload |
+| `pnpm build`                               | Build all workspaces that define a build               |
+| `pnpm typecheck`                           | Typecheck all workspaces                               |
+| `pnpm lint` / `pnpm format` / `pnpm check` | Lint, auto-fix format, and check formatting            |
+| `pnpm db:setup`                            | Provision PostgreSQL natively on Ubuntu (see below)    |
+| `pnpm db:generate`                         | Regenerate the Prisma client and Pothos types          |
+| `pnpm db:push`                             | Push the Prisma schema to the database                 |
+| `pnpm db:migrate`                          | Create/apply a development migration                   |
+| `pnpm db:seed`                             | Seed the database                                      |
+| `pnpm db:studio`                           | Open Prisma Studio                                     |
+| `pnpm generate-routes`                     | Regenerate the TanStack Router route tree              |
+
+### Provisioning the database on the Ubuntu VM
+
+`pnpm db:setup` runs [scripts/setup-db.sh](./scripts/setup-db.sh), which installs
+PostgreSQL natively on Ubuntu (apt-based systems only), enables the service, and
+creates the same user, password, and database as `docker-compose.yml`
+(`gspot`/`gspotter`/`gspot` on port 5432). It is idempotent and safe to re-run.
+On Ubuntu 24.04 it installs Postgres 16, matching the pinned compose image; on
+22.04 it falls back to the distro default. Afterwards, set the `DATABASE_URL` it
+prints in `packages/db/.env` and `apps/backend/.env`, then run `pnpm db:push`.
+
 ## Below is the default TanStack Start readme, it will be replaced
 
 Welcome to your new TanStack Start app!
@@ -38,7 +109,6 @@ If you prefer not to use Tailwind CSS:
 
 ## Linting & Formatting
 
-
 This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
 
 ```bash
@@ -46,7 +116,6 @@ pnpm lint
 pnpm format
 pnpm check
 ```
-
 
 ## Deploy with Nitro
 
@@ -60,8 +129,6 @@ node dist/server/index.mjs
 The build output is a self-contained Node server. To deploy, push the `dist/` directory to your host (Render, Fly.io, your own VPS, etc.) and run the server command above.
 
 For host-specific presets (Vercel, Netlify, Cloudflare, AWS Lambda, etc.) and tuning, see https://v3.nitro.build/deploy.
-
-
 
 ## Routing
 
@@ -80,7 +147,7 @@ Now that you have two routes you can use a `Link` component to navigate between 
 To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
 
 ```tsx
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router'
 ```
 
 Then anywhere in your JSX you can use it like so:
@@ -148,11 +215,11 @@ const getServerTime = createServerFn({
 // Use in a component
 function MyComponent() {
   const [time, setTime] = useState('')
-  
+
   useEffect(() => {
     getServerTime().then(setTime)
   }, [])
-  
+
   return <div>Server time: {time}</div>
 }
 ```
@@ -205,11 +272,9 @@ function PeopleComponent() {
 
 Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
 
-
 # Demo files
 
 Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
 
 # Learn More
 

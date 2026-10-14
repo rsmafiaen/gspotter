@@ -52,9 +52,9 @@ Instead, a price observation will contain:
 
 For example:
 
-| Price | Size | Condition |
-|---:|---:|---|
-| NOK 159 | 0.56 L | Regular |
+|   Price |   Size | Condition    |
+| ------: | -----: | ------------ |
+| NOK 159 | 0.56 L | Regular      |
 | NOK 129 | 0.56 L | Member price |
 
 This allows us to display multiple prices without losing information. We can still display a clear **regular price** as the default and label special prices with their conditions.

@@ -18,8 +18,8 @@ async function main() {
   await prisma.city.create({
     data: {
       name: 'Trondheim',
-      centreLon: '10.3951',
-      centreLat: '63.4305',
+      centreLon: 10.3951,
+      centreLat: 63.4305,
       venues: {
         create: [
           {
@@ -45,6 +45,7 @@ async function main() {
                   price: 165,
                   size: GlassSize.PINT,
                   limitation: [],
+                  timeSighted: at('18:30'),
                 },
                 {
                   price: 139,
@@ -52,11 +53,13 @@ async function main() {
                   limitation: [Limitations.TIME],
                   timeStart: at('16:00'),
                   timeEnd: at('18:00'),
+                  timeSighted: at('17:45'),
                 },
                 {
                   price: 149,
                   size: GlassSize.HALF_LITER,
                   limitation: [Limitations.MEMBERSHIP],
+                  timeSighted: at('19:15'),
                 },
               ],
             },
@@ -84,11 +87,13 @@ async function main() {
                   price: 149,
                   size: GlassSize.PINT,
                   limitation: [],
+                  timeSighted: at('18:00'),
                 },
                 {
                   price: 89,
                   size: GlassSize.QUARTER_LITER,
                   limitation: [],
+                  timeSighted: at('16:45'),
                 },
               ],
             },
@@ -111,11 +116,13 @@ async function main() {
                   price: 155,
                   size: GlassSize.PINT,
                   limitation: [],
+                  timeSighted: at('18:20'),
                 },
                 {
                   price: 135,
                   size: GlassSize.HALF_LITER,
                   limitation: [],
+                  timeSighted: at('18:40'),
                 },
               ],
             },
@@ -146,11 +153,13 @@ async function main() {
                   price: 159,
                   size: GlassSize.PINT,
                   limitation: [],
+                  timeSighted: at('12:30'),
                 },
                 {
                   price: 129,
                   size: GlassSize.HALF_LITER,
                   limitation: [Limitations.MEMBERSHIP],
+                  timeSighted: at('13:15'),
                 },
               ],
             },
@@ -163,8 +172,8 @@ async function main() {
   await prisma.city.create({
     data: {
       name: 'Oslo',
-      centreLon: '10.7522',
-      centreLat: '59.9139',
+      centreLon: 10.7522,
+      centreLat: 59.9139,
       venues: {
         create: [
           {
@@ -193,6 +202,7 @@ async function main() {
                   price: 185,
                   size: GlassSize.PINT,
                   limitation: [],
+                  timeSighted: at('20:00'),
                 },
               ],
             },
@@ -223,12 +233,14 @@ async function main() {
                   price: 175,
                   size: GlassSize.HALF_LITER,
                   limitation: [],
+                  timeSighted: at('19:30'),
                 },
                 {
                   price: 60,
                   size: GlassSize.OTHER,
                   limitation: [],
                   sizeMl: 330,
+                  timeSighted: at('21:00'),
                 },
               ],
             },

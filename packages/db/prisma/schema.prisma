@@ -64,7 +64,7 @@ model OpeningHours {
   closing DateTime @db.Timestamptz()
 
   venueId String @db.Uuid @map("venue_id")
-  venues Venue @relation(fields: [venueId], references: [id])
+  venue Venue @relation(fields: [venueId], references: [id])
 
   @@map("opening_hours")
 }
@@ -72,8 +72,8 @@ model OpeningHours {
 model City {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name String
-  centreLon String @map("centre_lon")
-  centreLat String @map("centre_lat")
+  centreLon Float @map("centre_lon")
+  centreLat Float @map("centre_lat")
 
   venues Venue[]
 
@@ -88,6 +88,7 @@ model PriceSighting {
   timeStart DateTime? @db.Timestamptz() @map("time_start")
   timeEnd  DateTime? @db.Timestamptz() @map("time_end")
   sizeMl Float? @map("size_ml")
+  timeSighted DateTime @db.Timestamptz() @map("time_sighted")
 
   venueId String @db.Uuid @map("venue_id")
   venue Venue @relation(fields: [venueId], references: [id])

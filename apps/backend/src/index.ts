@@ -3,7 +3,7 @@ import { startStandaloneServer } from '@apollo/server/standalone'
 
 import { builder } from './builder.js'
 import { createContext } from './context.js'
-import './schema/todo.js'
+import './schema/schema.js'
 
 const server = new ApolloServer({
   schema: builder.toSchema(),

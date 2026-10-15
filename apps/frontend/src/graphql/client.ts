@@ -1,4 +1,4 @@
-const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL ?? 'http://localhost:4000/'
+const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL ?? 'http://localhost:3001/'
 
 interface GraphQLResponse<T> {
   data?: T

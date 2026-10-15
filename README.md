@@ -9,7 +9,7 @@ This project is a pnpm workspace monorepo:
 ```text
 apps/
   frontend/   TanStack Start app (React + Vite, port 3000)
-  backend/    Apollo Server + GraphQL API (Pothos + Prisma, port 4000)
+  backend/    Apollo Server + GraphQL API (Pothos + Prisma, port 3001)
 packages/
   db/         Prisma schema, generated client, migrations and seed
 ```
@@ -44,7 +44,7 @@ pnpm db:seed
 pnpm dev
 ```
 
-Frontend: http://localhost:3000 · GraphQL API: http://localhost:4000
+Frontend: http://localhost:3000 · GraphQL API: http://localhost:3001
 
 ### Commands
 

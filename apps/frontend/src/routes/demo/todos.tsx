@@ -85,7 +85,7 @@ function DemoTodos() {
         {isError && (
           <p className="demo-muted mb-6 text-sm">
             Failed to load todos: {error.message}. Is the GraphQL backend
-            running on http://localhost:4000?
+            running on http://localhost:3001?
           </p>
         )}
 
@@ -127,7 +127,7 @@ function DemoTodos() {
             Powered by GraphQL + Apollo Server
           </h3>
           <p className="demo-muted mb-4 text-sm">
-            The frontend queries the GraphQL backend on port 4000, which uses
+            The frontend queries the GraphQL backend on port 3001, which uses
             Prisma to talk to PostgreSQL
           </p>
           <div className="space-y-2 text-sm">

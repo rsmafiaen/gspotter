@@ -13,12 +13,16 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
+import ViewVenue from '#/components/ViewVenue'
+import { graphqlFetch } from '#/graphql/client'
+import type { venue } from '#/types/venue'
 
 interface MyRouterContext {
   queryClient: QueryClient
 }
 
-const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
+const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark')?stored:'dark';var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(mode);root.setAttribute('data-theme',mode);root.style.colorScheme=mode;}catch(e){}})();`
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
@@ -44,6 +48,39 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
 })
 
+const GET_VENUE = `
+  query GetVenues {
+    venue {
+      id
+      name
+      address
+      city {
+        id
+        name
+      }
+      openingHours {
+        days
+        opening
+        closing
+      }
+    }
+  }
+`
+
+function VenueLoader() {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ['venues'],
+    queryFn: () => graphqlFetch<{ venue: venue[] }>(GET_VENUE),
+  })
+
+  if (isPending) return <p>Loading venue…</p>
+  if (isError) return <div>error</div>
+  // Hardcoded: show first venue for now
+  if (data.venue.length == 0) return <div>No venues found</div>
+  const first = data.venue[0]
+  return <ViewVenue {...first} />
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -60,6 +97,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
         <Header />
         {children}
+        <VenueLoader />
         <Footer />
         <TanStackDevtools
           config={{

@@ -43,7 +43,7 @@ env:
   # Persistent location of the deployed app on the VM
   DEPLOY_ROOT: /srv/gspotter
   # Public URL of the VM, no trailing slash (baked into the frontend build)
-  PUBLIC_BASE_URL: http://CHANGEME
+  PUBLIC_BASE_URL: http://http://it2810-09.idi.ntnu.no
   # Connection string for the VM's PostgreSQL (see pnpm db:setup)
   DATABASE_URL: postgresql://gspot:gspotter@localhost:5432/gspot
   BACKEND_PORT: 3001
@@ -70,10 +70,6 @@ jobs:
               exit 1
             }
           done
-          [[ "$PUBLIC_BASE_URL" != "http://it2810-09.idi.ntnu.no/" ]] || {
-            echo "::error::Set PUBLIC_BASE_URL to the VM's public URL"
-            exit 1
-          }
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

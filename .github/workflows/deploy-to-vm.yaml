@@ -43,7 +43,7 @@ env:
   # Persistent location of the deployed app on the VM
   DEPLOY_ROOT: /srv/gspotter
   # Public URL of the VM, no trailing slash (baked into the frontend build)
-  PUBLIC_BASE_URL: http://http://it2810-09.idi.ntnu.no
+  PUBLIC_BASE_URL: http://it2810-09.idi.ntnu.no
   # Connection string for the VM's PostgreSQL (see pnpm db:setup)
   DATABASE_URL: postgresql://gspot:gspotter@localhost:5432/gspot
   BACKEND_PORT: 3001

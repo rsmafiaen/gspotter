@@ -16,6 +16,7 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
+  base: '/project2',
 })
 
 export default config

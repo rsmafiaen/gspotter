@@ -10,7 +10,6 @@ function About() {
     <main className="page-wrap px-4 py-12">
       <section className="island-shell rounded-2xl p-6 sm:p-8">
         <Map />
-
       </section>
     </main>
   )

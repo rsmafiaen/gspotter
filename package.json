@@ -28,7 +28,9 @@
       "esbuild",
       "lightningcss",
       "@prisma/engines",
-      "prisma"
+      "prisma",
+      "@apollo/protobufjs",
+      "unrs-resolver"
     ]
   }
 }

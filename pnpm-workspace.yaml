@@ -7,3 +7,5 @@ allowBuilds:
   lightningcss: true
   '@prisma/engines': true
   prisma: true
+  '@apollo/protobufjs': true
+  unrs-resolver: true

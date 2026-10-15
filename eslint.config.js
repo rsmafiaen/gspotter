@@ -20,6 +20,11 @@ export default [
       'prettier.config.js',
       '.tanstack',
       '**/src/generated/**',
+      '**/.output/**',
+      '**/dist/**',
+      '**/.nitro/**',
+      '**/.vinxi/**',
+      '**/.wrangler/**',
     ],
   },
 ]

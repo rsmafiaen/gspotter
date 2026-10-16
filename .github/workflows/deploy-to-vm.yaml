@@ -150,6 +150,7 @@ jobs:
         run: |
           set -euo pipefail
           tries=0
+          sleep 5
           until curl -fsS -o /dev/null "http://localhost:$FRONTEND_PORT/project2/"; do
             tries=$((tries + 1))
             [[ $tries -lt 15 ]] || {

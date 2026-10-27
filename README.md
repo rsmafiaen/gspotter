@@ -123,7 +123,7 @@ Most recent commit hash at time of hand-in: [`efdbfa5`](https://git.ntnu.no/IT28
 
 Handed in Oct 16th
 
-Most recent commit hash at time of hand-in: [`TDB`](<>) (Will update if there is a more recent version in the future)
+Most recent commit hash at time of hand-in: [`054801b`](https://git.ntnu.no/IT2810-H26/T09-Project-2/tree/054801b7b8058fe35a5303cd54ff7815cbac0be8)
 
 ### 3rd hand-in of project 2
 

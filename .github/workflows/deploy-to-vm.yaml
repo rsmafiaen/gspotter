@@ -25,12 +25,7 @@
 
 name: CI/CD - Deploy to VM
 
-on:
-  workflow_run:
-    workflows: ['CI/CD - Linter, formatter and tests']
-    types: [completed]
-    branches:
-      - main
+on: workflow_dispatch
 
 permissions:
   contents: read
@@ -78,6 +73,9 @@ jobs:
         run: |
           printf 'DATABASE_URL="%s"\n' "$DATABASE_URL" > apps/backend/.env
           cp apps/backend/.env packages/db/.env
+
+      - name: Apply database migrations
+        run: pnpm --filter @t09-project-2/db run db:push
 
       - name: Generate Prisma client
         run: pnpm --filter @t09-project-2/db run db:generate

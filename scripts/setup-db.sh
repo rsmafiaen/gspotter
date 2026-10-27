@@ -21,7 +21,7 @@ fi
 
 apt-get update -y
 
-if ! apt-get install -y postgresql-16; then
+if ! apt-get install -y postgresql-18; then
   apt-get install -y postgresql
 fi
 

@@ -14,17 +14,17 @@ datasource db {
 }
 
 enum GlassSize {
-  PINT @map("PINT")
-  HALF_LITER @map("HALF_LITER")
+  PINT          @map("PINT")
+  HALF_LITER    @map("HALF_LITER")
   QUARTER_LITER @map("QUARTER_LITER")
-  BOX @map("BOX")
-  OTHER @map("OTHER")
+  BOX           @map("BOX")
+  OTHER         @map("OTHER")
 
   @@map("glass_size")
 }
 
 enum Limitations {
-  TIME @map("TIME")
+  TIME       @map("TIME")
   MEMBERSHIP @map("MEMBERSHIP")
 
   @@map("limitations")
@@ -43,14 +43,14 @@ enum Day {
 }
 
 model Venue {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
+  id      String @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  name    String
   address String
 
   openingHours OpeningHours[]
 
-  cityId String @db.Uuid @map("city_id")
-  city City @relation(fields: [cityId], references: [id])
+  cityId String @map("city_id") @db.Uuid
+  city   City   @relation(fields: [cityId], references: [id])
 
   pricesSighted PriceSighting[]
 
@@ -58,22 +58,22 @@ model Venue {
 }
 
 model OpeningHours {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  days Day[]
-  opening DateTime @db.Timestamptz()
-  closing DateTime @db.Timestamptz()
+  id      String   @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  days    Day[]
+  opening DateTime @db.Timetz()
+  closing DateTime @db.Timetz()
 
-  venueId String @db.Uuid @map("venue_id")
-  venue Venue @relation(fields: [venueId], references: [id])
+  venueId String @map("venue_id") @db.Uuid
+  venue   Venue  @relation(fields: [venueId], references: [id])
 
   @@map("opening_hours")
 }
 
 model City {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
-  centreLon Float @map("centre_lon")
-  centreLat Float @map("centre_lat")
+  id        String @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  name      String
+  centreLon Float  @map("centre_lon")
+  centreLat Float  @map("centre_lat")
 
   venues Venue[]
 
@@ -81,17 +81,17 @@ model City {
 }
 
 model PriceSighting {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  price Float
-  size GlassSize
-  limitation Limitations[]
-  timeStart DateTime? @db.Timestamptz() @map("time_start")
-  timeEnd  DateTime? @db.Timestamptz() @map("time_end")
-  sizeMl Float? @map("size_ml")
-  timeSighted DateTime @db.Timestamptz() @map("time_sighted")
+  id          String        @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  price       Float
+  size        GlassSize
+  limitation  Limitations[]
+  timeStart   DateTime?     @map("time_start") @db.Timetz()
+  timeEnd     DateTime?     @map("time_end") @db.Timetz()
+  sizeMl      Float?        @map("size_ml")
+  timeSighted DateTime      @map("time_sighted") @db.Timestamptz()
 
-  venueId String @db.Uuid @map("venue_id")
-  venue Venue @relation(fields: [venueId], references: [id])
+  venueId String @map("venue_id") @db.Uuid
+  venue   Venue  @relation(fields: [venueId], references: [id])
 
   @@map("price_sighting")
 }

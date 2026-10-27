@@ -25,6 +25,8 @@ async function main() {
           {
             name: 'Den Gode Nabo',
             address: 'Øvre Bakklandet 69',
+            lat: 63.4295,
+            lon: 10.3966,
             openingHours: {
               create: [
                 {
@@ -67,6 +69,8 @@ async function main() {
           {
             name: 'Skjenkestua',
             address: 'Nedre Bakklandet 24',
+            lat: 63.4292,
+            lon: 10.3959,
             openingHours: {
               create: [
                 {
@@ -101,6 +105,8 @@ async function main() {
           {
             name: 'Baklandet Skydsstation',
             address: 'Øvre Bakklandet 33',
+            lat: 63.4291,
+            lon: 10.3962,
             openingHours: {
               create: [
                 {
@@ -130,6 +136,8 @@ async function main() {
           {
             name: 'Trondheim Torg Pub',
             address: 'Olav Tryggvasons gate 6',
+            lat: 63.4302,
+            lon: 10.3948,
             openingHours: {
               create: [
                 {
@@ -179,6 +187,8 @@ async function main() {
           {
             name: 'The Dubliner Folk Pub',
             address: 'Rådhusgata 13',
+            lat: 59.9114,
+            lon: 10.7405,
             openingHours: {
               create: [
                 {
@@ -210,6 +220,8 @@ async function main() {
           {
             name: 'Tilt',
             address: 'Øvre Slottsgate 6',
+            lat: 59.9139,
+            lon: 10.7432,
             openingHours: {
               create: [
                 {

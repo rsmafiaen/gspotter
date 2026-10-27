@@ -46,6 +46,8 @@ model Venue {
   id      String @id @default(dbgenerated("uuidv7()")) @db.Uuid
   name    String
   address String
+  lat     Float
+  lon     Float
 
   openingHours OpeningHours[]
 

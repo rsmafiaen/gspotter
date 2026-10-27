@@ -1,7 +1,11 @@
 import { prisma } from '@t09-project-2/db'
+import type { OpeningHours, PriceSighting } from '@t09-project-2/db'
 
 import { builder } from '../builder.js'
-import { latestPriceSightings } from './price-sightings.js'
+import {
+  latestPriceSightings,
+  latestUnlimitedSighting,
+} from './price-sightings.js'
 import type { VenueWithPriceSightings } from './price-sightings.js'
 
 builder.prismaObject('Venue', {
@@ -9,13 +13,15 @@ builder.prismaObject('Venue', {
     id: t.exposeString('id'),
     name: t.exposeString('name'),
     address: t.exposeString('address'),
+    lat: t.exposeFloat('lat'),
+    lon: t.exposeFloat('lon'),
     openingHours: t.relation('openingHours'),
     city: t.relation('city'),
     pricesSighted: t.relation('pricesSighted'),
   }),
 })
 
-builder.prismaObject('OpeningHours', {
+const openingHoursRef = builder.prismaObject('OpeningHours', {
   fields: (t) => ({
     days: t.exposeStringList('days'),
     opening: t.expose('opening', { type: 'DateTime' }),
@@ -32,7 +38,7 @@ builder.prismaObject('City', {
   }),
 })
 
-builder.prismaObject('PriceSighting', {
+const priceSightingRef = builder.prismaObject('PriceSighting', {
   select: {
     size: true,
     sizeMl: true,
@@ -53,20 +59,147 @@ builder.prismaObject('PriceSighting', {
   }),
 })
 
+type SearchResultItem = {
+  type: 'venue' | 'city'
+  name: string
+  lat: number
+  lon: number
+  address: string | null
+  openingHours: OpeningHours[] | null
+  latestPriceSighting: PriceSighting | null
+}
+
+const searchResultRef = builder
+  .objectRef<SearchResultItem>('SearchResult')
+  .implement({
+    fields: (t) => ({
+      type: t.exposeString('type'),
+      name: t.exposeString('name'),
+      lat: t.exposeFloat('lat'),
+      lon: t.exposeFloat('lon'),
+      address: t.exposeString('address', { nullable: true }),
+      openingHours: t.expose('openingHours', {
+        type: [openingHoursRef],
+        nullable: { list: true, items: false },
+      }),
+      latestPriceSighting: t.expose('latestPriceSighting', {
+        type: priceSightingRef,
+        nullable: true,
+      }),
+    }),
+  })
+
+function applyLatestPriceSightings(venues: VenueWithPriceSightings[]) {
+  for (const venue of venues) {
+    if (venue.pricesSighted) {
+      venue.pricesSighted = latestPriceSightings(venue.pricesSighted)
+    }
+  }
+}
+
 builder.queryType({
   fields: (t) => ({
     venue: t.prismaField({
       type: ['Venue'],
-      resolve: async (query) => {
-        const venues = await prisma.venue.findMany({ ...query })
+      args: {
+        lat: t.arg.float(),
+        lon: t.arg.float(),
+      },
+      resolve: async (query, _parent, args) => {
+        if (args.lat == null || args.lon == null) {
+          const venues = await prisma.venue.findMany({ ...query })
 
-        for (const venue of venues as VenueWithPriceSightings[]) {
-          if (venue.pricesSighted) {
-            venue.pricesSighted = latestPriceSightings(venue.pricesSighted)
-          }
+          applyLatestPriceSightings(venues as VenueWithPriceSightings[])
+
+          return venues
         }
 
-        return venues
+        const nearest = await prisma.$queryRaw<{ id: string }[]>`
+          SELECT id FROM venue
+          ORDER BY haversine_distance(${args.lat}, ${args.lon}, lat, lon), name
+        `
+
+        const venues = await prisma.venue.findMany({
+          ...query,
+          where: { id: { in: nearest.map((venue) => venue.id) } },
+        })
+
+        const byId = new Map(venues.map((venue) => [venue.id, venue] as const))
+
+        const sorted = nearest.flatMap((row) => {
+          const venue = byId.get(row.id)
+          return venue ? [venue] : []
+        })
+
+        applyLatestPriceSightings(sorted as VenueWithPriceSightings[])
+
+        return sorted
+      },
+    }),
+    city: t.prismaField({
+      type: ['City'],
+      args: {
+        name: t.arg.string({ required: true }),
+      },
+      resolve: (query, _parent, args) =>
+        prisma.city.findMany({
+          ...query,
+          where: {
+            name: {
+              contains: args.name,
+              mode: 'insensitive',
+            },
+          },
+        }),
+    }),
+    search: t.field({
+      type: [searchResultRef],
+      args: {
+        term: t.arg.string({ required: true }),
+      },
+      resolve: async (_parent, args) => {
+        const contains = {
+          contains: args.term,
+          mode: 'insensitive' as const,
+        }
+
+        const [venues, cities] = await Promise.all([
+          prisma.venue.findMany({
+            where: {
+              OR: [{ name: contains }, { address: contains }],
+            },
+            include: {
+              openingHours: true,
+              pricesSighted: true,
+            },
+            orderBy: { name: 'asc' },
+          }),
+          prisma.city.findMany({
+            where: { name: contains },
+            orderBy: { name: 'asc' },
+          }),
+        ])
+
+        return [
+          ...venues.map((venue) => ({
+            type: 'venue' as const,
+            name: venue.name,
+            lat: venue.lat,
+            lon: venue.lon,
+            address: venue.address,
+            openingHours: venue.openingHours,
+            latestPriceSighting: latestUnlimitedSighting(venue.pricesSighted),
+          })),
+          ...cities.map((city) => ({
+            type: 'city' as const,
+            name: city.name,
+            lat: city.centreLat,
+            lon: city.centreLon,
+            address: null,
+            openingHours: null,
+            latestPriceSighting: null,
+          })),
+        ]
       },
     }),
   }),

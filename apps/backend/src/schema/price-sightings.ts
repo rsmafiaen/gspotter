@@ -48,6 +48,22 @@ export function latestPriceSightings<T extends PriceSightingLike>(
   return sightings.filter((sighting) => latest.has(sighting))
 }
 
+export function latestUnlimitedSighting<T extends PriceSightingLike>(
+  sightings: T[],
+): T | null {
+  return sightings.reduce<T | null>((latest, sighting) => {
+    if (sighting.limitation.length > 0) {
+      return latest
+    }
+
+    if (latest === null || sighting.timeSighted > latest.timeSighted) {
+      return sighting
+    }
+
+    return latest
+  }, null)
+}
+
 function sightingKey(sighting: PriceSightingLike): string {
   const category = [...sighting.limitation].sort().join('+')
 

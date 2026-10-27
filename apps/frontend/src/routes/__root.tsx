@@ -13,10 +13,6 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { useQuery } from '@tanstack/react-query'
-import ViewVenue from '#/components/ViewVenue'
-import { graphqlFetch } from '#/graphql/client'
-import type { venue } from '#/types/venue'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -48,39 +44,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
 })
 
-const GET_VENUE = `
-  query GetVenues {
-    venue {
-      id
-      name
-      address
-      city {
-        id
-        name
-      }
-      openingHours {
-        days
-        opening
-        closing
-      }
-    }
-  }
-`
-
-function VenueLoader() {
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['venues'],
-    queryFn: () => graphqlFetch<{ venue: venue[] }>(GET_VENUE),
-  })
-
-  if (isPending) return <p>Loading venue…</p>
-  if (isError) return <div>error</div>
-  // Hardcoded: show first venue for now
-  if (data.venue.length == 0) return <div>No venues found</div>
-  const first = data.venue[0]
-  return <ViewVenue {...first} />
-}
-
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -94,10 +57,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
+      <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(79,184,178,0.24)]">
         <Header />
         {children}
-        <VenueLoader />
+
         <Footer />
         <TanStackDevtools
           config={{

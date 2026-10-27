@@ -18,6 +18,7 @@ builder.prismaObject('Venue', {
     openingHours: t.relation('openingHours'),
     city: t.relation('city'),
     pricesSighted: t.relation('pricesSighted'),
+    reviews: t.relation('reviews'),
   }),
 })
 
@@ -35,6 +36,17 @@ builder.prismaObject('City', {
     name: t.exposeString('name'),
     lat: t.exposeFloat('centreLat'),
     lon: t.exposeFloat('centreLon'),
+  }),
+})
+
+builder.prismaObject('Review', {
+  fields: (t) => ({
+    id: t.exposeString('id'),
+    username: t.exposeString('username'),
+    body: t.exposeString('body'),
+    rating: t.exposeInt('rating'),
+    timeCreated: t.expose('timeCreated', { type: 'DateTime' }),
+    venueId: t.exposeString('venueId'),
   }),
 })
 
@@ -201,6 +213,27 @@ builder.queryType({
           })),
         ]
       },
+    }),
+  }),
+})
+
+builder.mutationType({
+  fields: (t) => ({
+    createReview: t.prismaFieldWithInput({
+      type: 'Review',
+      input: {
+        venueId: t.input.string({ required: true }),
+        username: t.input.string({ required: true }),
+        body: t.input.string({ required: true }),
+        rating: t.input.int({ required: true }),
+      },
+      resolve: (query, _parent, args) =>
+        prisma.review.create({
+          ...query,
+          data: {
+            ...args.input,
+          },
+        }),
     }),
   }),
 })

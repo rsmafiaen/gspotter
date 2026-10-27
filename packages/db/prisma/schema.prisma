@@ -55,6 +55,7 @@ model Venue {
   city   City   @relation(fields: [cityId], references: [id])
 
   pricesSighted PriceSighting[]
+  reviews Review[]
 
   @@map("venue")
 }
@@ -96,4 +97,17 @@ model PriceSighting {
   venue   Venue  @relation(fields: [venueId], references: [id])
 
   @@map("price_sighting")
+}
+
+model Review {
+  id String @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  username String
+  body String
+  rating Int
+  timeCreated DateTime @map("time_created") @db.Timestamptz() @default(dbgenerated("now()"))
+
+  venueId String @map("venue_id") @db.Uuid
+  venue Venue @relation(fields: [venueId], references: [id])
+
+  @@map("review")
 }

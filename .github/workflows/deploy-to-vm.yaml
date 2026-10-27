@@ -71,9 +71,6 @@ jobs:
           printf 'DATABASE_URL="%s"\n' "$DATABASE_URL" > apps/backend/.env
           cp apps/backend/.env packages/db/.env
 
-      - name: Apply database migrations
-        run: pnpm --filter @t09-project-2/db run db:push
-
       - name: Generate Prisma client
         run: pnpm --filter @t09-project-2/db run db:generate
 

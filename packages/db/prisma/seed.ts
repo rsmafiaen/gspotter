@@ -10,6 +10,7 @@ function at(time: string) {
 async function main() {
   console.log('Seeding database...')
 
+  await prisma.review.deleteMany()
   await prisma.priceSighting.deleteMany()
   await prisma.openingHours.deleteMany()
   await prisma.venue.deleteMany()
@@ -65,6 +66,20 @@ async function main() {
                 },
               ],
             },
+            reviews: {
+              create: [
+                {
+                  username: 'bakklandet_wanderer',
+                  body: 'Classic Trondheim pub by the river. Great atmosphere and friendly staff!',
+                  rating: 5,
+                },
+                {
+                  username: 'beer_enthusiast',
+                  body: 'Good selection, but it gets crowded on sunny days.',
+                  rating: 4,
+                },
+              ],
+            },
           },
           {
             name: 'Skjenkestua',
@@ -101,6 +116,15 @@ async function main() {
                 },
               ],
             },
+            reviews: {
+              create: [
+                {
+                  username: 'cozy_seeker',
+                  body: 'Intimate little spot with a fireplace. Perfect for a quiet pint.',
+                  rating: 4,
+                },
+              ],
+            },
           },
           {
             name: 'Baklandet Skydsstation',
@@ -129,6 +153,20 @@ async function main() {
                   size: GlassSize.HALF_LITER,
                   limitation: [],
                   timeSighted: at('18:40'),
+                },
+              ],
+            },
+            reviews: {
+              create: [
+                {
+                  username: 'sunday_sipper',
+                  body: 'Charming venue, but the prices are on the higher side.',
+                  rating: 3,
+                },
+                {
+                  username: 'historic_pub_fan',
+                  body: 'Oldest pub on Bakklandet! A must-visit for the vibes alone.',
+                  rating: 5,
                 },
               ],
             },
@@ -168,6 +206,15 @@ async function main() {
                   size: GlassSize.HALF_LITER,
                   limitation: [Limitations.MEMBERSHIP],
                   timeSighted: at('13:15'),
+                },
+              ],
+            },
+            reviews: {
+              create: [
+                {
+                  username: 'city_center_local',
+                  body: 'Convenient location, but nothing special. Fine for a quick one.',
+                  rating: 3,
                 },
               ],
             },
@@ -216,6 +263,20 @@ async function main() {
                 },
               ],
             },
+            reviews: {
+              create: [
+                {
+                  username: 'dubliner_regular',
+                  body: 'Live music every weekend! Feels like a little slice of Ireland.',
+                  rating: 5,
+                },
+                {
+                  username: 'oslo_nightowl',
+                  body: 'Great selection of stouts, though a bit pricey even for Oslo.',
+                  rating: 4,
+                },
+              ],
+            },
           },
           {
             name: 'Tilt',
@@ -256,21 +317,32 @@ async function main() {
                 },
               ],
             },
+            reviews: {
+              create: [
+                {
+                  username: 'arcade_addict',
+                  body: 'Retro games and craft beer, what more could you want?',
+                  rating: 5,
+                },
+              ],
+            },
           },
         ],
       },
     },
   })
 
-  const [cities, venues, openingHours, priceSightings] = await Promise.all([
-    prisma.city.count(),
-    prisma.venue.count(),
-    prisma.openingHours.count(),
-    prisma.priceSighting.count(),
-  ])
+  const [cities, venues, openingHours, priceSightings, reviews] =
+    await Promise.all([
+      prisma.city.count(),
+      prisma.venue.count(),
+      prisma.openingHours.count(),
+      prisma.priceSighting.count(),
+      prisma.review.count(),
+    ])
 
   console.log(
-    `Created ${cities} cities, ${venues} venues, ${openingHours} opening hours entries, and ${priceSightings} price sightings`,
+    `Created ${cities} cities, ${venues} venues, ${openingHours} opening hours entries, ${priceSightings} price sightings, and ${reviews} reviews`,
   )
 }
 

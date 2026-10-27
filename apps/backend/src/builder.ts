@@ -5,6 +5,7 @@ import { getDatamodel, prisma } from '@t09-project-2/db'
 import type { PrismaTypes } from '@t09-project-2/db'
 
 import type { Context } from './context.js'
+import WithInputPlugin from '@pothos/plugin-with-input'
 
 export const builder = new SchemaBuilder<{
   Context: Context
@@ -16,7 +17,7 @@ export const builder = new SchemaBuilder<{
     }
   }
 }>({
-  plugins: [PrismaPlugin],
+  plugins: [PrismaPlugin, WithInputPlugin],
   prisma: {
     client: prisma,
     dmmf: getDatamodel(),

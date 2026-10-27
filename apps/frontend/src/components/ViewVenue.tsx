@@ -1,64 +1,52 @@
-import type { venue } from '#/types/venue'
-import { useQuery } from '@tanstack/react-query'
-import { graphqlFetch } from '#/graphql/client'
+import { formatPrice } from '#/lib/format-price'
+import type { SearchResult } from '#/types/search'
 
-const GET_VENUE = `
-  query GetVenues {
-    venue {
-      id
-      name
-      address
-      city {
-        id
-        name
-      }
-      openingHours {
-        days
-        opening
-        closing
-      }
-    }
-  }
-`
+function formatTime(iso: string) {
+  return iso.slice(11, 16)
+}
 
-export function ViewVenue(Current: venue) {
-  const fmt = (iso: string) => iso.slice(11, 16)
-
+export function ViewVenue({ venue }: { venue: SearchResult }) {
   return (
-    <article className="rounded-2xl border border-(--harp-gold) bg-(--cream) p-5 text-(--sea-ink)">
-      <p className="text-xs font-bold tracking-widest uppercase text-(--)">
-        {Current.city.name}
-      </p>
-      <h2 className="mt-1 text-xl font-extrabold">{Current.name}</h2>
-      <p className="mt-1 text-sm text-(--sea-ink-soft)">{Current.address}</p>
+    <article className="rounded-2xl border border-[var(--line)] bg-[var(--surface-strong)] p-5 text-[var(--sea-ink)]">
+      <p className="island-kicker">Selected pub</p>
+      <h2 className="mt-1 text-xl font-extrabold">{venue.name}</h2>
+      <p className="mt-1 text-sm text-[var(--sea-ink-soft)]">{venue.address}</p>
+      {venue.latestPriceSighting && (
+        <p className="mt-3 text-sm">
+          <span className="font-semibold">Latest price:</span>{' '}
+          {formatPrice(venue.latestPriceSighting)}
+        </p>
+      )}
       <h3 className="mt-4 text-sm font-bold">Opening hours</h3>
-      <ul className="mt-1">
-        {Current.openingHours.map((oh, i) => (
-          <li
-            key={i}
-            className="flex items-baseline justify-between gap-4 border-t border-(--line) py-2 text-sm"
-          >
-            <span className="font-semibold">{oh.days.join(', ')}</span>
-            <span className="text-(--sea-ink-soft)">
-              {fmt(oh.opening)} - {fmt(oh.closing)}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {venue.openingHours && venue.openingHours.length > 0 ? (
+        <ul className="mt-1">
+          {venue.openingHours.map((openingHours, index) => (
+            <li
+              key={index}
+              className="flex items-baseline justify-between gap-4 border-t border-[var(--line)] py-2 text-sm"
+            >
+              <span className="font-semibold">
+                {openingHours.days.join(', ')}
+              </span>
+              <span className="text-[var(--sea-ink-soft)]">
+                {formatTime(openingHours.opening)} -{' '}
+                {formatTime(openingHours.closing)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-1 text-sm text-[var(--sea-ink-soft)]">
+          No opening hours listed.
+        </p>
+      )}
     </article>
   )
 }
 
-export default function VenueLoader() {
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['venues'],
-    queryFn: () => graphqlFetch<{ venue: venue[] }>(GET_VENUE),
-  })
+export default function VenueLoader({ venue }: { venue: SearchResult | null }) {
+  // Only venues have a card; a selected city just moves the map.
+  if (!venue || venue.type !== 'venue') return null
 
-  if (isPending) return <p>Loading venue…</p>
-  if (isError) return <div>error</div>
-  // Hardcoded: show first venue for now
-  if (data.venue.length == 0) return <div>No venues found</div>
-  const first = data.venue[0]
-  return <ViewVenue {...first} />
+  return <ViewVenue venue={venue} />
 }

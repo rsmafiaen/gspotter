@@ -5,22 +5,43 @@ import type { FormEvent, KeyboardEvent } from 'react'
 
 import { graphqlFetch } from '../graphql/client'
 import { formatPrice } from '../lib/format-price'
-import type { SearchResult } from '../types/search'
+import { searchFilterVariables } from '../lib/search-filters'
+import type { Coordinates } from '../lib/location'
+import type { SearchFilters, SearchResult } from '../types/search'
 
 const DEBOUNCE_MS = 300
 const COLLAPSED_RESULT_COUNT = 3
 
-// Search runs in the database (see apps/backend/src/schema/schema.ts). Results
-// mix cities and venues; `type` tells them apart.
+// Every filter is sent to the backend, which filters the data in Postgres.
+// Results mix cities and venues; `type` tells them apart.
 const SEARCH_QUERY = `
-  query Search($term: String!) {
-    search(term: $term) {
+  query Search(
+    $term: String!
+    $lat: Float
+    $lon: Float
+    $maxDistanceKm: Float
+    $minPrice: Float
+    $maxPrice: Float
+    $sizes: [GlassSize!]
+    $minRating: Float
+  ) {
+    search(
+      term: $term
+      lat: $lat
+      lon: $lon
+      maxDistanceKm: $maxDistanceKm
+      minPrice: $minPrice
+      maxPrice: $maxPrice
+      sizes: $sizes
+      minRating: $minRating
+    ) {
       id
       cityId
       type
       name
       lat
       lon
+      distanceKm
       address
       openingHours {
         days
@@ -36,6 +57,8 @@ const SEARCH_QUERY = `
         timeEnd
         timeSighted
       }
+      averageRating
+      reviewCount
     }
   }
 `
@@ -47,6 +70,12 @@ function typeRank(result: SearchResult) {
 
 function typeLabel(result: SearchResult) {
   return result.type === 'city' ? 'City' : 'Pub'
+}
+
+function formatDistance(distanceKm: number) {
+  if (distanceKm < 1) return `${Math.round(distanceKm * 1000)} m`
+
+  return `${distanceKm.toFixed(1)} km`
 }
 
 function SearchIcon() {
@@ -66,7 +95,13 @@ function SearchIcon() {
   )
 }
 
-export function SearchBox() {
+interface SearchBoxProps {
+  /** The user's position, used to calculate and filter by distance. */
+  coordinates?: Coordinates | null
+  filters: SearchFilters
+}
+
+export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
   const navigate = useNavigate()
   const inputId = useId()
   const listId = useId()
@@ -86,19 +121,25 @@ export function SearchBox() {
     return () => clearTimeout(timeout)
   }, [term])
 
-  // Collapse the list again whenever the term changes (the plan wants the full
-  // list only after the user presses Enter).
+  // Collapse the list again whenever the term or filters change (the plan wants
+  // the full list only after the user presses Enter).
   useEffect(() => {
     setShowAll(false)
     setActiveIndex(-1)
-  }, [term])
+  }, [term, filters])
+
+  const variables = useMemo(
+    () => ({
+      term: debouncedTerm,
+      ...searchFilterVariables(filters, coordinates),
+    }),
+    [debouncedTerm, coordinates, filters],
+  )
 
   const { data, isFetching, isError } = useQuery({
-    queryKey: ['search', debouncedTerm],
+    queryKey: ['search', variables],
     queryFn: () =>
-      graphqlFetch<{ search: SearchResult[] }>(SEARCH_QUERY, {
-        term: debouncedTerm,
-      }),
+      graphqlFetch<{ search: SearchResult[] }>(SEARCH_QUERY, variables),
     enabled: debouncedTerm.length > 0,
     placeholderData: keepPreviousData,
     retry: 1,
@@ -171,11 +212,12 @@ export function SearchBox() {
 
   return (
     <div className="absolute top-3 right-3 z-[1000] w-[min(22rem,calc(100%_-_1.5rem))]">
-      <form role="search" onSubmit={handleSubmit}>
-        <label htmlFor={inputId} className="sr-only">
-          Search for a pub or city
-        </label>
-        <div className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 shadow-lg backdrop-blur">
+      <form
+        role="search"
+        onSubmit={handleSubmit}
+        className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] shadow-lg backdrop-blur"
+      >
+        <div className="flex items-center gap-2 px-3 py-2">
           <button
             type="submit"
             aria-label="Search"
@@ -183,6 +225,9 @@ export function SearchBox() {
           >
             <SearchIcon />
           </button>
+          <label htmlFor={inputId} className="sr-only">
+            Search for a pub or city
+          </label>
           <input
             id={inputId}
             type="search"
@@ -265,18 +310,48 @@ export function SearchBox() {
                       index === activeOption ? 'bg-[var(--chip-bg)]' : ''
                     }`}
                   >
-                    <span className="font-semibold">{result.name}</span>
-                    <span className="ml-2 rounded-full border border-[var(--chip-line)] px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide uppercase text-[var(--sea-ink-soft)]">
-                      {typeLabel(result)}
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="min-w-0">
+                        <span className="font-semibold">{result.name}</span>
+                        <span className="ml-2 rounded-full border border-[var(--chip-line)] px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide uppercase text-[var(--sea-ink-soft)]">
+                          {typeLabel(result)}
+                        </span>
+                      </span>
+                      {result.averageRating != null && (
+                        <span
+                          title={`Average rating ${result.averageRating.toFixed(1)} out of 5 from ${
+                            result.reviewCount ?? 0
+                          } ${
+                            (result.reviewCount ?? 0) === 1
+                              ? 'review'
+                              : 'reviews'
+                          }`}
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-1.5 py-0.5 text-xs font-bold"
+                        >
+                          <span aria-hidden="true" className="text-amber-500">
+                            ★
+                          </span>
+                          <span>{result.averageRating.toFixed(1)}</span>
+                          <span className="font-normal text-[var(--sea-ink-soft)]">
+                            ({result.reviewCount ?? 0})
+                          </span>
+                        </span>
+                      )}
                     </span>
                     {result.address && (
                       <span className="mt-0.5 block text-xs text-[var(--sea-ink-soft)]">
                         {result.address}
                       </span>
                     )}
-                    {result.latestPriceSighting && (
-                      <span className="mt-0.5 block text-xs text-[var(--sea-ink-soft)]">
-                        {formatPrice(result.latestPriceSighting)}
+                    {(result.latestPriceSighting ||
+                      result.distanceKm != null) && (
+                      <span className="mt-0.5 flex flex-wrap justify-between gap-x-2 text-xs text-[var(--sea-ink-soft)]">
+                        {result.latestPriceSighting && (
+                          <span>{formatPrice(result.latestPriceSighting)}</span>
+                        )}
+                        {result.distanceKm != null && (
+                          <span>{formatDistance(result.distanceKm)} away</span>
+                        )}
                       </span>
                     )}
                   </button>

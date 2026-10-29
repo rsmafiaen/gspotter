@@ -1,3 +1,14 @@
+export type GlassSize =
+  'PINT' | 'HALF_LITER' | 'QUARTER_LITER' | 'BOX' | 'OTHER'
+
+export interface SearchFilters {
+  maxDistanceKm: number | null
+  minPrice: string
+  maxPrice: string
+  sizes: GlassSize[]
+  minRating: number | null
+}
+
 export interface SearchOpeningHours {
   days: string[]
   opening: string
@@ -21,6 +32,7 @@ export interface SearchResult {
   name: string
   lat: number
   lon: number
+  distanceKm?: number | null
   address: string | null
   openingHours: SearchOpeningHours[] | null
   latestPriceSighting: SearchPriceSighting | null

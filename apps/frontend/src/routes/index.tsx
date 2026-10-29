@@ -1,13 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import Map from '../components/Map'
 import MockLocationNotice from '#/components/MockLocationNotice'
 import NearbyVenues from '#/components/NearbyVenues'
-import type { SearchResult } from '#/types/search'
-import type { NearbyVenue, VenuePriceSighting } from '#/types/venue'
 import SearchBox from '#/components/SearchBox'
+import SearchFilters from '#/components/SearchFilters'
 import { graphqlFetch } from '#/graphql/client'
 import {
   MOCK_LOCATION,
@@ -17,6 +16,15 @@ import {
   usesMockLocation,
 } from '#/lib/location'
 import type { Coordinates } from '#/lib/location'
+import {
+  EMPTY_SEARCH_FILTERS,
+  searchFilterVariables,
+} from '#/lib/search-filters'
+import type {
+  SearchFilters as SearchFilterValues,
+  SearchResult,
+} from '#/types/search'
+import type { NearbyVenue, VenuePriceSighting } from '#/types/venue'
 
 export const Route = createFileRoute('/')({ component: App })
 
@@ -29,12 +37,20 @@ const NEARBY_QUERY = `
     $lon: Float!
     $limit: Int!
     $maxDistanceKm: Float!
+    $minPrice: Float
+    $maxPrice: Float
+    $sizes: [GlassSize!]
+    $minRating: Float
   ) {
     venue(
       lat: $lat
       lon: $lon
       limit: $limit
       maxDistanceKm: $maxDistanceKm
+      minPrice: $minPrice
+      maxPrice: $maxPrice
+      sizes: $sizes
+      minRating: $minRating
     ) {
       id
       name
@@ -104,6 +120,8 @@ function toSearchResult(venue: NearbyVenue): SearchResult {
 
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null)
+  const [searchFilters, setSearchFilters] =
+    useState<SearchFilterValues>(EMPTY_SEARCH_FILTERS)
   const [locating, setLocating] = useState(true)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [usingMockLocation, setUsingMockLocation] = useState(false)
@@ -153,16 +171,23 @@ function App() {
     void refreshLocation()
   }, [refreshLocation])
 
+  const nearbyMaxDistanceKm =
+    searchFilters.maxDistanceKm ?? NEARBY_MAX_DISTANCE_KM
+  const nearbyVariables = useMemo(
+    () => ({
+      ...searchFilterVariables(searchFilters, coordinates),
+      limit: NEARBY_LIMIT,
+      maxDistanceKm: nearbyMaxDistanceKm,
+    }),
+    [searchFilters, coordinates, nearbyMaxDistanceKm],
+  )
+
   const { data, isFetching, isError } = useQuery({
-    queryKey: ['nearbyVenues', coordinates?.lat, coordinates?.lon],
+    queryKey: ['nearbyVenues', nearbyVariables],
     queryFn: () =>
-      graphqlFetch<{ venue: NearbyVenue[] }>(NEARBY_QUERY, {
-        lat: coordinates!.lat,
-        lon: coordinates!.lon,
-        limit: NEARBY_LIMIT,
-        maxDistanceKm: NEARBY_MAX_DISTANCE_KM,
-      }),
+      graphqlFetch<{ venue: NearbyVenue[] }>(NEARBY_QUERY, nearbyVariables),
     enabled: coordinates != null,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: 1,
   })
@@ -182,12 +207,17 @@ function App() {
     <main className="page-wrap px-4 pb-8 pt-14">
       {usingMockLocation && <MockLocationNotice />}
       <section className="island-shell rise-in relative overflow-hidden rounded-4xl px-6 py-10 sm:px-10 sm:py-14 mb-10">
-        <SearchBox />
+        <SearchBox coordinates={coordinates} filters={searchFilters} />
         <Map
           nearby={nearbyVenues}
           userLocation={coordinates}
           flyTo={flyTo}
           isMockLocation={usingMockLocation}
+        />
+        <SearchFilters
+          filters={searchFilters}
+          coordinates={coordinates}
+          onChange={setSearchFilters}
         />
       </section>
       <div className="mt-4">
@@ -198,6 +228,7 @@ function App() {
           locationError={locationError}
           isLoading={isFetching}
           isError={isError}
+          maxDistanceKm={nearbyMaxDistanceKm}
           onRefresh={refreshLocation}
         />
       </div>

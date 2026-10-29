@@ -1,6 +1,6 @@
 export { getDatabaseUrl } from './database-url.js'
 export { prisma } from './client.js'
-export { PrismaClient } from './generated/prisma/client.js'
+export { GlassSize, Prisma, PrismaClient } from './generated/prisma/client.js'
 export type { OpeningHours, PriceSighting } from './generated/prisma/client.js'
 export type { default as PrismaTypes } from './generated/pothos-types.js'
 export { getDatamodel } from './generated/pothos-types.js'

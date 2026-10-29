@@ -4,11 +4,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { graphqlFetch } from '#/graphql/client'
 import { CREATE_REVIEW } from '#/graphql/venues'
+import { assetUrl } from '#/lib/asset-url'
 import type { VenueReview } from '#/types/venue'
 
 const USERNAME_STORAGE_KEY = 'g-spotter:review-username'
 const BODY_MAX_LENGTH = 1000
 const RATING_VALUES = [1, 2, 3, 4, 5]
+const HARP_SRC = assetUrl('harp.svg')
 
 interface ReviewInput {
   venueId: string
@@ -110,7 +112,7 @@ export default function AddReviewDialog({
       <button
         type="button"
         onClick={openDialog}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-(--lagoon-deep) bg-(--chip-bg) px-3.5 py-2 text-sm font-bold text-(--sea-ink) shadow-[0_8px_22px_rgba(30,90,72,0.08)] hover:-translate-y-0.5 hover:bg-(--link-bg-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
+        className="inline-flex items-center gap-1.5 rounded-xl bg-(--chip-bg) px-3.5 py-2 text-sm font-bold text-(--sea-ink) shadow-[0_8px_22px_rgba(0,0,0,0.28)] hover:-translate-y-0.5 hover:bg-(--link-bg-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
       >
         <span aria-hidden="true" className="text-base leading-none">
           ＋
@@ -127,7 +129,7 @@ export default function AddReviewDialog({
             closeDialog()
           }
         }}
-        className="m-auto max-h-[calc(100dvh_-_2rem)] w-[min(30rem,calc(100vw_-_2rem))] overflow-y-auto rounded-2xl border border-(--line) bg-(--surface-strong) p-0 text-(--sea-ink) shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+        className="m-auto max-h-[calc(100dvh_-_2rem)] w-[min(30rem,calc(100vw_-_2rem))] overflow-y-auto rounded-2xl bg-(--surface-strong) p-0 text-(--sea-ink) shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
       >
         <div className="relative p-5">
           <h2 id={titleId} className="text-xl font-extrabold">
@@ -152,46 +154,47 @@ export default function AddReviewDialog({
                 required
                 autoComplete="nickname"
                 placeholder="e.g. Kari"
-                className="w-full rounded-xl border border-(--line) bg-(--chip-bg) px-3 py-2 text-sm text-(--sea-ink) outline-none placeholder:text-(--sea-ink-soft) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
+                className="w-full rounded-xl bg-(--chip-bg) px-3 py-2 text-sm text-(--sea-ink) outline-none placeholder:text-(--sea-ink-soft) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
               />
             </div>
 
             <fieldset className="grid gap-1.5">
               <legend className="text-sm font-bold">Rating</legend>
               <div
-                className="flex flex-wrap items-center gap-1"
+                className="flex flex-wrap items-center"
                 onMouseLeave={() => setHoveredRating(0)}
               >
-                {RATING_VALUES.map((value) => (
-                  <label
-                    key={value}
-                    onMouseEnter={() => setHoveredRating(value)}
-                    className="cursor-pointer rounded-md p-0.5 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-(--lagoon-deep)"
-                  >
-                    <input
-                      type="radio"
-                      name="rating"
-                      value={value}
-                      checked={rating === value}
-                      onChange={() => setRating(value)}
-                      className="sr-only"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className={`text-2xl leading-none transition-colors ${
-                        value <= visibleRating
-                          ? 'text-amber-500'
-                          : 'text-(--line)'
-                      }`}
-                    >
-                      ★
-                    </span>
-                    <span className="sr-only">{value} out of 5 stars</span>
-                  </label>
-                ))}
-                <span className="ml-2 text-xs font-bold text-(--sea-ink-soft)">
-                  {rating > 0 ? `${rating} / 5` : 'Select a rating'}
+                <span className="mr-2 w-24 shrink-0 text-right text-xs font-bold whitespace-nowrap text-(--sea-ink-soft)">
+                  Select a rating:
                 </span>
+                <div className="flex items-center -space-x-4">
+                  {RATING_VALUES.map((value) => (
+                    <label
+                      key={value}
+                      onMouseEnter={() => setHoveredRating(value)}
+                      className="cursor-pointer rounded-md p-0.5"
+                    >
+                      <input
+                        type="radio"
+                        name="rating"
+                        value={value}
+                        checked={rating === value}
+                        onChange={() => setRating(value)}
+                        className="peer sr-only"
+                      />
+                      <img
+                        src={HARP_SRC}
+                        alt=""
+                        aria-hidden="true"
+                        draggable={false}
+                        className={`h-5 w-auto rounded-sm select-none transition-opacity peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-(--lagoon-deep) ${
+                          value <= visibleRating ? 'opacity-100' : 'opacity-30'
+                        }`}
+                      />
+                      <span className="sr-only">{value} out of 5 harps</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </fieldset>
 
@@ -212,7 +215,7 @@ export default function AddReviewDialog({
                 required
                 rows={4}
                 placeholder="What was the atmosphere, selection and price like?"
-                className="min-h-28 w-full resize-y rounded-xl border border-(--line) bg-(--chip-bg) px-3 py-2 text-sm text-(--sea-ink) outline-none placeholder:text-(--sea-ink-soft) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
+                className="min-h-28 w-full resize-y rounded-xl bg-(--chip-bg) px-3 py-2 text-sm text-(--sea-ink) outline-none placeholder:text-(--sea-ink-soft) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
               />
             </div>
 
@@ -230,14 +233,14 @@ export default function AddReviewDialog({
               <button
                 type="button"
                 onClick={closeDialog}
-                className="rounded-xl border border-(--line) px-3.5 py-2 text-sm font-bold text-(--sea-ink-soft) hover:bg-(--chip-bg) hover:text-(--sea-ink) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
+                className="rounded-xl px-3.5 py-2 text-sm font-bold text-(--sea-ink-soft) hover:bg-(--chip-bg) hover:text-(--sea-ink) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="rounded-xl border border-(--lagoon-deep) bg-(--chip-bg) px-3.5 py-2 text-sm font-bold text-(--sea-ink) hover:bg-(--link-bg-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep) disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-(--chip-bg) px-3.5 py-2 text-sm font-bold text-(--sea-ink) hover:bg-(--link-bg-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep) disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isPending ? 'Posting…' : 'Post review'}
               </button>

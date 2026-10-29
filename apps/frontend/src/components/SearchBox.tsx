@@ -211,11 +211,11 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
   }
 
   return (
-    <div className="absolute top-3 right-3 z-[1000] w-[min(22rem,calc(100%_-_1.5rem))]">
+    <div className="relative z-[1000] w-full max-w-[22rem]">
       <form
         role="search"
         onSubmit={handleSubmit}
-        className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] shadow-lg backdrop-blur"
+        className="rounded-xl bg-[var(--surface-strong)] shadow-lg backdrop-blur"
       >
         <div className="flex items-center gap-2 px-3 py-2">
           <button
@@ -270,7 +270,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
       </form>
 
       {showPanel && (
-        <div className="mt-2 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] shadow-lg backdrop-blur">
+        <div className="mt-2 overflow-hidden rounded-xl bg-[var(--surface-strong)] shadow-lg backdrop-blur">
           {isError && (
             <p className="px-3 py-2 text-sm text-[var(--sea-ink-soft)]">
               Search is unavailable right now.
@@ -313,7 +313,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
                     <span className="flex items-baseline justify-between gap-2">
                       <span className="min-w-0">
                         <span className="font-semibold">{result.name}</span>
-                        <span className="ml-2 rounded-full border border-[var(--chip-line)] px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide uppercase text-[var(--sea-ink-soft)]">
+                        <span className="ml-2 rounded-full px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide uppercase text-[var(--sea-ink-soft)]">
                           {typeLabel(result)}
                         </span>
                       </span>
@@ -326,7 +326,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
                               ? 'review'
                               : 'reviews'
                           }`}
-                          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-1.5 py-0.5 text-xs font-bold"
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--chip-bg)] px-1.5 py-0.5 text-xs font-bold"
                         >
                           <span aria-hidden="true" className="text-amber-500">
                             ★

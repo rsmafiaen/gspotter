@@ -1,56 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Lora', Georgia, 'Times New Roman', serif;
 }
 
+/* Light theme: the creamy head of a settling pint. */
 :root {
-  --sea-ink: #173a40;
-  --sea-ink-soft: #416166;
-  --lagoon: #4fb8b2;
-  --lagoon-deep: #328f97;
-  --palm: #2f6a4a;
-  --sand: #e7f0e8;
-  --foam: #f3faf5;
-  --surface: rgba(255, 255, 255, 0.74);
-  --surface-strong: rgba(255, 255, 255, 0.9);
-  --line: rgba(23, 58, 64, 0.14);
+  --sea-ink: #241314;
+  --sea-ink-soft: #5f4a44;
+  --lagoon: #a87a1f;
+  --lagoon-deep: #7a1c22;
+  --palm: #7a1c22;
+  --sand: #f1e4c9;
+  --foam: #faf3e4;
+  --surface: rgba(255, 251, 243, 0.78);
+  --surface-strong: rgba(255, 252, 246, 0.92);
+  --line: rgba(90, 20, 25, 0.16);
   --inset-glint: rgba(255, 255, 255, 0.82);
-  --kicker: rgba(47, 106, 74, 0.9);
-  --bg-base: #e7f3ec;
-  --header-bg: rgba(251, 255, 248, 0.84);
-  --chip-bg: rgba(255, 255, 255, 0.8);
-  --chip-line: rgba(47, 106, 74, 0.18);
-  --link-bg-hover: rgba(255, 255, 255, 0.9);
-  --hero-a: rgba(79, 184, 178, 0.36);
-  --hero-b: rgba(47, 106, 74, 0.2);
+  --kicker: #7a1c22;
+  --bg-base: #f1e4c9;
+  --header-bg: rgba(250, 243, 228, 0.88);
+  --chip-bg: rgba(255, 251, 243, 0.86);
+  --chip-line: rgba(122, 28, 34, 0.18);
+  --link-bg-hover: rgba(255, 255, 255, 0.95);
+  --hero-a: rgba(168, 122, 31, 0.22);
+  --hero-b: rgba(122, 28, 34, 0.12);
+  --stout-black: #f1e4c9;
+  --cream-head: rgba(250, 243, 228, 0.9);
+  --harp-gold: #a87a1f;
+  --cream-dark: #6d1419;
 }
 
+/* Dark theme: a settled pint, near-black with a ruby undertone. */
 :root[data-theme='dark'] {
-  --sea-ink: #d7ece8;
-  --sea-ink-soft: #afcdc8;
-  --lagoon: #60d7cf;
-  --lagoon-deep: #8de5db;
-  --palm: #6ec89a;
-  --sand: #0f1a1e;
-  --foam: #101d22;
-  --surface: rgba(16, 30, 34, 0.8);
-  --surface-strong: rgba(15, 27, 31, 0.92);
-  --line: rgba(141, 229, 219, 0.18);
-  --inset-glint: rgba(194, 247, 238, 0.14);
-  --kicker: #b8efe5;
-  --bg-base: #0a1418;
-  --header-bg: rgba(10, 20, 24, 0.8);
-  --chip-bg: rgba(13, 28, 32, 0.9);
-  --chip-line: rgba(141, 229, 219, 0.24);
-  --link-bg-hover: rgba(24, 44, 49, 0.8);
-  --hero-a: rgba(96, 215, 207, 0.18);
-  --hero-b: rgba(110, 200, 154, 0.12);
-  --stout-black: rgba(26, 26, 26);
+  --sea-ink: #f2e6cd;
+  --sea-ink-soft: #c7b79c;
+  --lagoon: #e6c77f;
+  --lagoon-deep: #d3ad57;
+  --palm: #8c1d24;
+  --sand: #100b0b;
+  --foam: #160e0f;
+  --surface: rgba(28, 18, 18, 0.82);
+  --surface-strong: rgba(24, 15, 15, 0.94);
+  --line: rgba(211, 173, 87, 0.2);
+  --inset-glint: rgba(242, 230, 205, 0.12);
+  --kicker: #d3ad57;
+  --bg-base: #090606;
+  --header-bg: rgba(10, 7, 7, 0.86);
+  --chip-bg: rgba(38, 25, 25, 0.9);
+  --chip-line: rgba(211, 173, 87, 0.26);
+  --link-bg-hover: rgba(55, 36, 34, 0.9);
+  --hero-a: rgba(140, 29, 36, 0.35);
+  --hero-b: rgba(211, 173, 87, 0.14);
+  --stout-black: #080505;
   --cream-head: rgba(245, 240, 220);
-  --harp-gold: rgba(254, 203, 0);
+  --harp-gold: #d3ad57;
   --cream-dark: rgba(189, 172, 103);
 }
 
@@ -69,6 +75,20 @@ body {
   color: var(--sea-ink);
   font-family: var(--font-sans);
   background-color: var(--stout-black);
+  background-image: radial-gradient(
+    ellipse at 50% -10%,
+    var(--hero-a),
+    transparent 60%
+  );
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 body::before {
@@ -94,13 +114,17 @@ body::after {
 @layer base {
   a {
     color: var(--lagoon-deep);
-    text-decoration-color: rgba(50, 143, 151, 0.4);
+    text-decoration-color: color-mix(
+      in oklab,
+      var(--lagoon-deep) 50%,
+      transparent
+    );
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
   }
 
   a:hover {
-    color: #246f76;
+    color: var(--sea-ink);
   }
 }
 
@@ -127,11 +151,10 @@ pre code {
 }
 
 .display-title {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 .island-shell {
-  border: 1px solid var(--line);
   background: linear-gradient(165deg, var(--surface-strong), var(--surface));
 
   backdrop-filter: blur(4px);
@@ -145,8 +168,8 @@ pre code {
   );
   box-shadow:
     0 1px 0 var(--inset-glint) inset,
-    0 18px 34px rgba(30, 90, 72, 0.1),
-    0 4px 14px rgba(23, 58, 64, 0.06);
+    0 18px 34px rgba(0, 0, 0, 0.28),
+    0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
 .feature-card:hover {
@@ -178,8 +201,8 @@ pre code {
   background: linear-gradient(165deg, var(--surface-strong), var(--surface));
   box-shadow:
     0 1px 0 var(--inset-glint) inset,
-    0 18px 34px rgba(30, 90, 72, 0.1),
-    0 4px 14px rgba(23, 58, 64, 0.06);
+    0 18px 34px rgba(0, 0, 0, 0.28),
+    0 4px 14px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(4px);
 }
 
@@ -378,6 +401,20 @@ a {
   color: var(--kicker);
 }
 
+.striped-list > li {
+  border-radius: 0.6rem;
+  margin-inline: -0.75rem;
+  padding-inline: 0.75rem;
+}
+
+.striped-list > li:nth-child(even) {
+  background: color-mix(in oklab, var(--sea-ink) 6%, transparent);
+}
+
+.venue-list > li:hover {
+  background: var(--chip-bg);
+}
+
 .nav-link {
   position: relative;
   display: inline-flex;
@@ -395,7 +432,7 @@ a {
   height: 2px;
   transform: scaleX(0);
   transform-origin: left;
-  background: linear-gradient(90deg, var(--lagoon), #7ed3bf);
+  background: linear-gradient(90deg, var(--lagoon), var(--lagoon-deep));
   transition: transform 170ms ease;
 }
 
@@ -418,6 +455,39 @@ a {
 .site-footer {
   border-top: 1px solid var(--line);
   background: color-mix(in oklab, var(--header-bg) 84%, transparent 16%);
+}
+
+:root[data-theme='dark'] .leaflet-container {
+  background: var(--stout-black);
+}
+
+:root[data-theme='dark'] .leaflet-tile-pane {
+  filter: sepia(0.35) brightness(0.75) contrast(1.05) saturate(0.65);
+}
+
+:root[data-theme='dark'] .leaflet-popup-content-wrapper,
+:root[data-theme='dark'] .leaflet-popup-tip {
+  background: var(--surface-strong);
+  color: var(--sea-ink);
+}
+
+:root[data-theme='dark'] .leaflet-bar a {
+  border-color: var(--line);
+  background: var(--surface-strong);
+  color: var(--sea-ink);
+}
+
+.leaflet-container .leaflet-tooltip {
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--sand);
+  color: var(--sea-ink);
+  padding: 0.5rem 0.7rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+.leaflet-container .leaflet-tooltip-top::before {
+  border-top-color: var(--sand);
 }
 
 .rise-in {

@@ -5,13 +5,15 @@ import {
   CircleMarker,
   MapContainer,
   Marker,
-  Popup,
   TileLayer,
+  Tooltip,
   useMap,
 } from 'react-leaflet'
 import L from 'leaflet'
+import { useNavigate } from '@tanstack/react-router'
 
 import { formatPrice } from '../lib/format-price'
+import { assetUrl } from '#/lib/asset-url'
 import { MOCK_LOCATION_NAME } from '../lib/location'
 import type { Coordinates } from '../lib/location'
 import type { SearchResult } from '../types/search'
@@ -32,13 +34,13 @@ function FlyToResult({ coordinates }: { coordinates: number[] | undefined }) {
 }
 
 const harpIcon = new L.Icon({
-  iconUrl: 'harp.svg',
-  shadowUrl: 'harp_shadow.svg',
+  iconUrl: assetUrl('harp.svg'),
+  shadowUrl: assetUrl('harp_shadow.svg'),
   iconSize: [46, 46],
   shadowSize: [50, 50],
   iconAnchor: [23, 23],
   shadowAnchor: [25, 25],
-  popupAnchor: [0, -47.5],
+  popupAnchor: [0, -25],
 })
 
 export default function Map({
@@ -52,6 +54,7 @@ export default function Map({
   flyTo?: number[]
   isMockLocation?: boolean
 }) {
+  const navigate = useNavigate()
   const markers = nearby.filter(
     (venue, index, all) =>
       all.findIndex(
@@ -80,8 +83,18 @@ export default function Map({
             key={`${curr.type}-${curr.name}-${curr.lat}-${curr.lon}`}
             icon={harpIcon}
             position={[curr.lat, curr.lon]}
+            eventHandlers={{
+              click: () => {
+                if (curr.cityId) {
+                  void navigate({
+                    to: '/$cityId/venues/$venueId',
+                    params: { cityId: curr.cityId, venueId: curr.id },
+                  })
+                }
+              },
+            }}
           >
-            <Popup>
+            <Tooltip direction="top" offset={[0, -20]}>
               <strong>{curr.name}</strong>
               {curr.address && <span className="block">{curr.address}</span>}
               {curr.latestPriceSighting && (
@@ -89,7 +102,7 @@ export default function Map({
                   {formatPrice(curr.latestPriceSighting)}
                 </span>
               )}
-            </Popup>
+            </Tooltip>
           </Marker>
         ))}
         {userLocation && (
@@ -97,16 +110,16 @@ export default function Map({
             center={[userLocation.lat, userLocation.lon]}
             radius={8}
             pathOptions={{
-              color: '#328f97',
-              fillColor: '#4fb8b2',
+              color: '#d3ad57',
+              fillColor: '#e6c77f',
               fillOpacity: 0.85,
             }}
           >
-            <Popup>
+            <Tooltip direction="top" offset={[0, -12]}>
               {isMockLocation
                 ? `Mock location: ${MOCK_LOCATION_NAME}`
                 : 'Your location'}
-            </Popup>
+            </Tooltip>
           </CircleMarker>
         )}
       </MapContainer>

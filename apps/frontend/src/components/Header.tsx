@@ -8,7 +8,7 @@ export default function Header() {
           <div className="flex w-full items-center justify-between gap-3">
             <a
               href={import.meta.env.BASE_URL}
-              className="m-0 p-0 text-left text-(--cream-dark)"
+              className="m-0 p-0 text-left tracking-[0.08em] text-(--) font-extrabold"
             >
               G-SPOTTER
             </a>

@@ -73,7 +73,7 @@ function CityVenuesPage() {
 function PageShell({ children }: { children: ReactNode }) {
   return (
     <main className="page-wrap px-4 pb-8 pt-14">
-      <div className="rounded-2xl border border-(--line) bg-(--surface-strong) p-5 text-(--sea-ink)">
+      <div className="rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
         {children}
       </div>
     </main>

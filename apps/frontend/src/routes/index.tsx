@@ -207,7 +207,9 @@ function App() {
     <main className="page-wrap px-4 pb-8 pt-14">
       {usingMockLocation && <MockLocationNotice />}
       <section className="island-shell rise-in relative overflow-hidden rounded-4xl px-6 py-10 sm:px-10 sm:py-14 mb-10">
-        <SearchBox coordinates={coordinates} filters={searchFilters} />
+        <div className="mb-3 flex justify-end">
+          <SearchBox coordinates={coordinates} filters={searchFilters} />
+        </div>
         <Map
           nearby={nearbyVenues}
           userLocation={coordinates}

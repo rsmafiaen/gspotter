@@ -20,7 +20,7 @@ const SIZE_OPTIONS: { value: GlassSize; label: string }[] = [
 ]
 
 const fieldClassName =
-  'mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] px-2.5 py-1.5 text-sm text-[var(--sea-ink)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
+  'mt-1 w-full rounded-xl bg-[var(--chip-bg)] px-2.5 py-1.5 text-sm text-[var(--sea-ink)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
 
 const labelClassName = 'block text-xs font-semibold text-[var(--sea-ink-soft)]'
 
@@ -67,10 +67,9 @@ export default function SearchFilters({
   }
 
   return (
-    <section className="mt-4 rounded-2xl border border-[var(--line)] bg-[var(--surface-strong)] p-4 text-[var(--sea-ink)]">
+    <section className="mt-4 rounded-2xl bg-[var(--surface-strong)] p-4 text-[var(--sea-ink)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="island-kicker">Filters</p>
           <h2 className="mt-1 text-lg font-extrabold">Filter pubs</h2>
           <p className="mt-0.5 text-xs text-[var(--sea-ink-soft)]">
             Applies to the map, nearby pubs and search results.
@@ -80,7 +79,7 @@ export default function SearchFilters({
           type="button"
           onClick={() => onChange(EMPTY_SEARCH_FILTERS)}
           disabled={activeCount === 0}
-          className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--sea-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+          className="rounded-full bg-[var(--chip-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--sea-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
         >
           Clear filters
           {activeCount > 0 && ` (${activeCount})`}

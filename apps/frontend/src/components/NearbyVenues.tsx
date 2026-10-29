@@ -16,7 +16,7 @@ interface NearbyVenuesProps {
 }
 
 const rowClassName =
-  'block w-full border-t border-[var(--line)] px-1 py-3 text-left text-sm text-[var(--sea-ink)] transition hover:bg-[var(--chip-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
+  'block w-full px-1 py-3 text-left text-sm text-[var(--sea-ink)] transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
 
 function VenueRow({ venue }: { venue: SearchResult }) {
   return (
@@ -28,7 +28,7 @@ function VenueRow({ venue }: { venue: SearchResult }) {
             title={`Average rating ${venue.averageRating.toFixed(1)} out of 5 from ${
               venue.reviewCount ?? 0
             } ${(venue.reviewCount ?? 0) === 1 ? 'review' : 'reviews'}`}
-            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-2 py-0.5 text-xs font-bold text-[var(--sea-ink)]"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--chip-bg)] px-2 py-0.5 text-xs font-bold text-[var(--sea-ink)]"
           >
             <span aria-hidden="true" className="text-amber-500">
               ★
@@ -82,7 +82,7 @@ export default function NearbyVenues({
           type="button"
           onClick={onRefresh}
           disabled={locating}
-          className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+          className="rounded-full bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
         >
           {locating ? 'Finding location…' : 'Refresh location'}
         </button>
@@ -125,7 +125,7 @@ export default function NearbyVenues({
         )}
 
       {hasLocation && venues.length > 0 && (
-        <ul className="mt-3">
+        <ul className="mt-3 striped-list venue-list">
           {venues.map((venue) => (
             <li key={venue.id}>
               {venue.cityId ? (

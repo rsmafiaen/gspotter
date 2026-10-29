@@ -68,7 +68,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(79,184,178,0.24)]">
+      <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(211,173,87,0.32)]">
         <Header />
         {children}
 

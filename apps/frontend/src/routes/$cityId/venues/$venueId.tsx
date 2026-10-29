@@ -69,13 +69,13 @@ function VenuePage() {
         />
         <section
           aria-label={`Map showing ${current.name}`}
-          className="overflow-hidden rounded-2xl border border-(--line) bg-(--surface-strong) p-2"
+          className="overflow-hidden rounded-2xl bg-(--surface-strong) p-2"
         >
           <VenueMap lat={current.lat} lon={current.lon} name={current.name} />
         </section>
       </div>
 
-      <section className="mt-6 rounded-2xl border border-(--line) bg-(--surface-strong) p-5 text-(--sea-ink)">
+      <section className="mt-6 rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-baseline gap-2">
             <h2 className="text-xl font-extrabold">Reviews</h2>
@@ -86,14 +86,12 @@ function VenuePage() {
           <AddReviewDialog venueId={current.id} venueName={current.name} />
         </div>
 
-        <div className="mt-4 border-t border-(--line)" aria-hidden="true" />
-
         {reviews.length === 0 ? (
           <p className="mt-3 text-sm text-(--sea-ink-soft)">No reviews yet.</p>
         ) : (
-          <ul className="mt-4 divide-y divide-(--line)">
+          <ul className="mt-4 striped-list">
             {reviews.map((review) => (
-              <li key={review.id} className="py-4 first:pt-0 last:pb-0">
+              <li key={review.id} className="py-4 first:pt-0">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <p className="font-bold">{review.username}</p>
@@ -121,7 +119,7 @@ function VenuePage() {
 function PageShell({ children }: { children: ReactNode }) {
   return (
     <main className="page-wrap px-4 pb-8 pt-14">
-      <div className="rounded-2xl border border-(--line) bg-(--surface-strong) p-5 text-(--sea-ink)">
+      <div className="rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
         {children}
       </div>
     </main>

@@ -13,12 +13,12 @@ export default function MockLocationNotice() {
       <h2 className="mt-1 text-base font-extrabold">
         We are showing a mock position instead of your real one
       </h2>
-      <p className="mt-1 text-sm text-[var(--sea-ink-soft)]">
+      <p className="mt-1 text-sm text-(--sea-ink-soft)">
         Browsers only share your location over HTTPS or on localhost, and this
         site is served over plain HTTP. Pubs are therefore sorted by distance
         from {MOCK_LOCATION_NAME} rather than from where you actually are.
       </p>
-      <p className="mt-2 text-sm text-[var(--sea-ink-soft)]">
+      <p className="mt-2 text-sm text-(--sea-ink-soft)">
         For the full experience, check out{' '}
         <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
           the repository

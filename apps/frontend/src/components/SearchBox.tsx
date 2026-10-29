@@ -87,7 +87,7 @@ function SearchIcon() {
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
-      className="h-4 w-4 shrink-0 text-[var(--sea-ink-soft)]"
+      className="size-4 shrink-0 text-(--sea-ink-soft)"
     >
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
@@ -211,17 +211,17 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
   }
 
   return (
-    <div className="relative z-[1000] w-full max-w-[22rem]">
+    <div className="relative z-1000 w-full max-w-88">
       <form
         role="search"
         onSubmit={handleSubmit}
-        className="rounded-xl bg-[var(--surface-strong)] shadow-lg backdrop-blur"
+        className="rounded-xl bg-(--chip-bg) backdrop-blur"
       >
         <div className="flex items-center gap-2 px-3 py-2">
           <button
             type="submit"
             aria-label="Search"
-            className="shrink-0 rounded-full p-0.5 hover:text-[var(--sea-ink)]"
+            className="shrink-0 rounded-full p-0.5 hover:text-(--sea-ink)"
           >
             <SearchIcon />
           </button>
@@ -248,7 +248,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
             aria-activedescendant={
               activeOption >= 0 ? `${listId}-option-${activeOption}` : undefined
             }
-            className="w-full bg-transparent text-sm text-[var(--sea-ink)] outline-none placeholder:text-[var(--sea-ink-soft)] [&::-webkit-search-cancel-button]:appearance-none"
+            className="w-full bg-transparent text-sm text-(--sea-ink) outline-none placeholder:text-(--sea-ink-soft) [&::-webkit-search-cancel-button]:appearance-none"
           />
           {term.length > 0 && (
             <button
@@ -261,7 +261,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
                 setShowAll(false)
                 setActiveIndex(-1)
               }}
-              className="shrink-0 rounded-full px-1 text-sm leading-none text-[var(--sea-ink-soft)] hover:text-[var(--sea-ink)]"
+              className="shrink-0 rounded-full px-1 text-sm leading-none text-(--sea-ink-soft) hover:text-(--sea-ink)"
             >
               ✕
             </button>
@@ -270,15 +270,15 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
       </form>
 
       {showPanel && (
-        <div className="mt-2 overflow-hidden rounded-xl bg-[var(--surface-strong)] shadow-lg backdrop-blur">
+        <div className="absolute top-full right-0 left-0 mt-2 overflow-hidden rounded-xl bg-(--surface-strong) shadow-lg backdrop-blur">
           {isError && (
-            <p className="px-3 py-2 text-sm text-[var(--sea-ink-soft)]">
+            <p className="px-3 py-2 text-sm text-(--sea-ink-soft)">
               Search is unavailable right now.
             </p>
           )}
 
           {!isError && (waitingForDebounce || isFetching) && (
-            <p className="px-3 py-2 text-sm text-[var(--sea-ink-soft)]">
+            <p className="px-3 py-2 text-sm text-(--sea-ink-soft)">
               Searching…
             </p>
           )}
@@ -287,7 +287,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
             !waitingForDebounce &&
             !isFetching &&
             results.length === 0 && (
-              <p className="px-3 py-2 text-sm text-[var(--sea-ink-soft)]">
+              <p className="px-3 py-2 text-sm text-(--sea-ink-soft)">
                 No matches for “{debouncedTerm}”.
               </p>
             )}
@@ -306,14 +306,14 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => select(result)}
                     onMouseEnter={() => setActiveIndex(index)}
-                    className={`w-full px-3 py-2 text-left text-sm text-[var(--sea-ink)] hover:bg-[var(--chip-bg)] ${
-                      index === activeOption ? 'bg-[var(--chip-bg)]' : ''
+                    className={`w-full px-3 py-2 text-left text-sm text-(--sea-ink) hover:bg-(--chip-bg) ${
+                      index === activeOption ? 'bg-(--chip-bg)' : ''
                     }`}
                   >
                     <span className="flex items-baseline justify-between gap-2">
                       <span className="min-w-0">
                         <span className="font-semibold">{result.name}</span>
-                        <span className="ml-2 rounded-full px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide uppercase text-[var(--sea-ink-soft)]">
+                        <span className="ml-2 rounded-full px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide uppercase text-(--sea-ink-soft)">
                           {typeLabel(result)}
                         </span>
                       </span>
@@ -326,26 +326,26 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
                               ? 'review'
                               : 'reviews'
                           }`}
-                          className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--chip-bg)] px-1.5 py-0.5 text-xs font-bold"
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full bg-(--chip-bg) px-1.5 py-0.5 text-xs font-bold"
                         >
                           <span aria-hidden="true" className="text-amber-500">
                             ★
                           </span>
                           <span>{result.averageRating.toFixed(1)}</span>
-                          <span className="font-normal text-[var(--sea-ink-soft)]">
+                          <span className="font-normal text-(--sea-ink-soft)">
                             ({result.reviewCount ?? 0})
                           </span>
                         </span>
                       )}
                     </span>
                     {result.address && (
-                      <span className="mt-0.5 block text-xs text-[var(--sea-ink-soft)]">
+                      <span className="mt-0.5 block text-xs text-(--sea-ink-soft)">
                         {result.address}
                       </span>
                     )}
                     {(result.latestPriceSighting ||
                       result.distanceKm != null) && (
-                      <span className="mt-0.5 flex flex-wrap justify-between gap-x-2 text-xs text-[var(--sea-ink-soft)]">
+                      <span className="mt-0.5 flex flex-wrap justify-between gap-x-2 text-xs text-(--sea-ink-soft)">
                         {result.latestPriceSighting && (
                           <span>{formatPrice(result.latestPriceSighting)}</span>
                         )}
@@ -365,7 +365,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
               type="button"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => setShowAll(true)}
-              className="w-full border-t border-[var(--line)] px-3 py-2 text-left text-xs font-semibold text-[var(--sea-ink-soft)] hover:bg-[var(--chip-bg)]"
+              className="w-full border-t border-(--line) px-3 py-2 text-left text-xs font-semibold text-(--sea-ink-soft) hover:bg-(--chip-bg)"
             >
               Show all {results.length} results (or press Enter)
             </button>

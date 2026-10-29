@@ -46,7 +46,7 @@ export default function ThemeToggle() {
       onClick={toggleMode}
       aria-label={label}
       title={label}
-      className="rounded-full bg-(--cream-dark) px-3 py-1.5 text-sm font-semibold text-(--stout-black) shadow-[0_8px_22px_rgba(0,0,0,0.28)] transition hover:-translate-y-0.5"
+      className="rounded-full bg-(--cream-dark) px-3 py-1.5 text-sm font-semibold text-(--stout-black) transition hover:-translate-y-0.5"
     >
       {mode === 'dark' ? 'Dark' : 'Light'}
     </button>

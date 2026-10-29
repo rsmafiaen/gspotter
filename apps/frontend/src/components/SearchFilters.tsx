@@ -20,9 +20,9 @@ const SIZE_OPTIONS: { value: GlassSize; label: string }[] = [
 ]
 
 const fieldClassName =
-  'mt-1 w-full rounded-xl bg-[var(--chip-bg)] px-2.5 py-1.5 text-sm text-[var(--sea-ink)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
+  'mt-1 w-full rounded-xl bg-(--chip-bg) px-2.5 py-1.5 text-sm text-(--sea-ink) outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
 
-const labelClassName = 'block text-xs font-semibold text-[var(--sea-ink-soft)]'
+const labelClassName = 'block text-xs font-semibold text-(--sea-ink-soft)'
 
 function blockNegativeKey(event: KeyboardEvent<HTMLInputElement>) {
   if (event.key === '-') {
@@ -67,11 +67,11 @@ export default function SearchFilters({
   }
 
   return (
-    <section className="mt-4 rounded-2xl bg-[var(--surface-strong)] p-4 text-[var(--sea-ink)]">
+    <section className="mt-4 rounded-2xl bg-(--surface-strong) p-4 text-(--sea-ink)">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="mt-1 text-lg font-extrabold">Filter pubs</h2>
-          <p className="mt-0.5 text-xs text-[var(--sea-ink-soft)]">
+          <p className="mt-0.5 text-xs text-(--sea-ink-soft)">
             Applies to the map, nearby pubs and search results.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function SearchFilters({
           type="button"
           onClick={() => onChange(EMPTY_SEARCH_FILTERS)}
           disabled={activeCount === 0}
-          className="rounded-full bg-[var(--chip-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--sea-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+          className="rounded-full bg-(--chip-bg) px-3 py-1.5 text-xs font-semibold text-(--sea-ink) transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
         >
           Clear filters
           {activeCount > 0 && ` (${activeCount})`}
@@ -111,7 +111,7 @@ export default function SearchFilters({
             ))}
           </select>
           {!coordinates && (
-            <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">
+            <p className="mt-1 text-xs text-(--sea-ink-soft)">
               Allow location access to filter by distance.
             </p>
           )}
@@ -174,13 +174,13 @@ export default function SearchFilters({
             {SIZE_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex items-center gap-1.5 text-sm font-medium text-[var(--sea-ink)]"
+                className="flex items-center gap-1.5 text-sm font-medium text-(--sea-ink)"
               >
                 <input
                   type="checkbox"
                   checked={filters.sizes.includes(option.value)}
                   onChange={() => toggleSize(option.value)}
-                  className="h-4 w-4 accent-[var(--lagoon-deep)]"
+                  className="h-4 w-4 accent-(--lagoon-deep)"
                 />
                 {option.label}
               </label>

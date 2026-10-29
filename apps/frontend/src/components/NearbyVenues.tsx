@@ -16,7 +16,7 @@ interface NearbyVenuesProps {
 }
 
 const rowClassName =
-  'block w-full px-1 py-3 text-left text-sm text-[var(--sea-ink)] transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
+  'block w-full px-1 py-3 text-left text-sm text-(--sea-ink) transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
 
 function VenueRow({ venue }: { venue: SearchResult }) {
   return (
@@ -28,30 +28,30 @@ function VenueRow({ venue }: { venue: SearchResult }) {
             title={`Average rating ${venue.averageRating.toFixed(1)} out of 5 from ${
               venue.reviewCount ?? 0
             } ${(venue.reviewCount ?? 0) === 1 ? 'review' : 'reviews'}`}
-            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--chip-bg)] px-2 py-0.5 text-xs font-bold text-[var(--sea-ink)]"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-(--chip-bg) px-2 py-0.5 text-xs font-bold text-(--sea-ink)"
           >
             <span aria-hidden="true" className="text-amber-500">
               ★
             </span>
             <span>{venue.averageRating.toFixed(1)}</span>
-            <span className="font-normal text-[var(--sea-ink-soft)]">
+            <span className="font-normal text-(--sea-ink-soft)">
               ({venue.reviewCount ?? 0})
             </span>
           </span>
         )}
       </span>
       {venue.address && (
-        <span className="mt-0.5 block text-xs text-[var(--sea-ink-soft)]">
+        <span className="mt-0.5 block text-xs text-(--sea-ink-soft)">
           {venue.address}
         </span>
       )}
       {venue.openingHours && venue.openingHours.length > 0 && (
-        <span className="mt-0.5 block text-xs text-[var(--sea-ink-soft)]">
+        <span className="mt-0.5 block text-xs text-(--sea-ink-soft)">
           {formatOpeningHours(venue.openingHours)}
         </span>
       )}
       {venue.latestPriceSighting && (
-        <span className="mt-0.5 block text-xs text-[var(--sea-ink-soft)]">
+        <span className="mt-0.5 block text-xs text-(--sea-ink-soft)">
           {formatPrice(venue.latestPriceSighting)}
         </span>
       )}
@@ -82,20 +82,18 @@ export default function NearbyVenues({
           type="button"
           onClick={onRefresh}
           disabled={locating}
-          className="rounded-full bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+          className="rounded-full bg-(--chip-bg) px-3 py-1.5 text-sm font-semibold text-(--sea-ink) transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
         >
           {locating ? 'Finding location…' : 'Refresh location'}
         </button>
       </div>
 
       {locationError && (
-        <p className="mt-3 text-sm text-[var(--sea-ink-soft)]">
-          {locationError}
-        </p>
+        <p className="mt-3 text-sm text-(--sea-ink-soft)">{locationError}</p>
       )}
 
       {!locationError && !hasLocation && (
-        <p className="mt-3 text-sm text-[var(--sea-ink-soft)]">
+        <p className="mt-3 text-sm text-(--sea-ink-soft)">
           {locating
             ? 'Finding your location…'
             : 'Allow location access to see pubs near you.'}
@@ -103,13 +101,13 @@ export default function NearbyVenues({
       )}
 
       {hasLocation && isError && (
-        <p className="mt-3 text-sm text-[var(--sea-ink-soft)]">
+        <p className="mt-3 text-sm text-(--sea-ink-soft)">
           Nearby pubs are unavailable right now.
         </p>
       )}
 
       {hasLocation && !isError && isLoading && venues.length === 0 && (
-        <p className="mt-3 text-sm text-[var(--sea-ink-soft)]">
+        <p className="mt-3 text-sm text-(--sea-ink-soft)">
           Loading nearby pubs…
         </p>
       )}
@@ -119,7 +117,7 @@ export default function NearbyVenues({
         !isLoading &&
         venues.length === 0 &&
         !locationError && (
-          <p className="mt-3 text-sm text-[var(--sea-ink-soft)]">
+          <p className="mt-3 text-sm text-(--sea-ink-soft)">
             No pubs within {maxDistanceKm} km of your location.
           </p>
         )}

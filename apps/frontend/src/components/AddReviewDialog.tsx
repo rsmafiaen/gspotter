@@ -112,7 +112,7 @@ export default function AddReviewDialog({
       <button
         type="button"
         onClick={openDialog}
-        className="inline-flex items-center gap-1.5 rounded-xl bg-(--chip-bg) px-3.5 py-2 text-sm font-bold text-(--sea-ink) shadow-[0_8px_22px_rgba(0,0,0,0.28)] hover:-translate-y-0.5 hover:bg-(--link-bg-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
+        className="inline-flex items-center gap-1.5 rounded-xl bg-(--chip-bg) px-3.5 py-2 text-sm font-bold text-(--sea-ink) hover:-translate-y-0.5 hover:bg-(--link-bg-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"
       >
         <span aria-hidden="true" className="text-base leading-none">
           ＋
@@ -129,7 +129,7 @@ export default function AddReviewDialog({
             closeDialog()
           }
         }}
-        className="m-auto max-h-[calc(100dvh_-_2rem)] w-[min(30rem,calc(100vw_-_2rem))] overflow-y-auto rounded-2xl bg-(--surface-strong) p-0 text-(--sea-ink) shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+        className="m-auto max-h-[calc(100dvh-2rem)] w-[min(30rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl bg-(--surface-strong) p-0 text-(--sea-ink) shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
       >
         <div className="relative p-5">
           <h2 id={titleId} className="text-xl font-extrabold">

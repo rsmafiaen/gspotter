@@ -9,6 +9,10 @@ on:
       - opened
       - synchronize
 
+env:
+  # Test database on the self-hosted runner
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
 jobs:
   lint-format-and-test:
     runs-on: [self-hosted]
@@ -21,13 +25,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Write env file
-        run: >
-          printf 'DATABASE_URL="postgresql://ci:ci@localhost:5432/ci"\n' >
-          packages/db/.env
+      - name: Write env files
+        run: |
+          printf 'DATABASE_URL="%s"\n' "$DATABASE_URL" > apps/backend/.env
+          cp apps/backend/.env packages/db/.env
 
       - name: Generate Prisma client
         run: pnpm --filter @t09-project-2/db run db:generate
+
+      - name: Apply database migrations
+        run: pnpm --filter @t09-project-2/db run db:deploy
+
+      - name: Seed test database
+        run: pnpm --filter @t09-project-2/db run db:seed
 
       - name: Check formatting
         run: pnpm check

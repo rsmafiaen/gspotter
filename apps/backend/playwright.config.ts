@@ -21,7 +21,7 @@ export default defineConfig({
           command: 'pnpm run start',
           cwd: fileURLToPath(new URL('.', import.meta.url)),
           url: `${apiBaseURL}/?query=%7B__typename%7D`,
-          reuseExistingServer: !process.env.CI,
+          reuseExistingServer: true,
           timeout: 120_000,
         },
       }

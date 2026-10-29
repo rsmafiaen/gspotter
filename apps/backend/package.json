@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "dotenv -e .env -- tsx watch src/index.ts",
     "start": "dotenv -e .env -- tsx src/index.ts",
-    "test:e2e": "dotenv -e .env -- playwright test",
+    "test": "dotenv -e .env -- playwright test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

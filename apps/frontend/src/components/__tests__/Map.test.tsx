@@ -28,7 +28,7 @@ interface CircleMarkerProps {
 }
 
 interface PopupProps {
-  children: ReactNode
+  children?: ReactNode
 }
 
 vi.mock('react-leaflet', () => ({

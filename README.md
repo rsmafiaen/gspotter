@@ -81,8 +81,10 @@ Frontend: http://localhost:3000 · GraphQL API: http://localhost:3001
 | `pnpm build`                                   | Build all workspaces that define a build                |
 | `pnpm typecheck`                               | Typecheck all workspaces                                |
 | `pnpm lint` / `pnpm format` / `pnpm check`     | Lint, auto-fix format, and check formatting             |
-| `pnpm test`                                    | Run the frontend component tests once                   |
-| `pnpm test:watch`                              | Re-run tests while developing                           |
+| `pnpm test`                                    | Run frontend and backend tests                          |
+| `pnpm test:frontend`                           | Run only the frontend component tests once              |
+| `pnpm test:frontend:watch`                     | Re-run frontend tests while developing                  |
+| `pnpm test:backend`                            | Run only the backend tests once                         |
 | `pnpm db:setup`                                | Provision PostgreSQL natively on Ubuntu (see below)     |
 | `pnpm db:generate`                             | Regenerate the Prisma client and Pothos types           |
 | `pnpm db:push`                                 | Push the Prisma schema to the database (prototyping)    |
@@ -116,15 +118,17 @@ pnpm check # Runs the prettier formatter in check mode, so will not write to any
 The frontend uses [Vitest](https://vitest.dev/) with [Testing Library](https://testing-library.com/docs/react-testing-library/intro/) and jsdom. Component tests live in `apps/frontend/src/components/__tests__`, and shared fixtures and providers are in `apps/frontend/src/test`. The tests cover rendering, user interaction, form validation, routing and the map wrappers without needing a running backend.
 
 ```bash
-pnpm test # Run all component tests once
-pnpm test:watch # Re-run tests while developing
+pnpm test:frontend # Run all component tests once
+pnpm test:frontend:watch # Re-run tests while developing
 ```
 
 The backend API has Playwright end-to-end tests that send requests to the running GraphQL API. They require PostgreSQL, the backend `.env`, and the sample data created by `pnpm db:seed` (which replaces existing database rows). The test command starts the backend automatically; set `API_BASE_URL` to use an already-running API instead.
 
 ```bash
-pnpm test:e2e:backend
+pnpm test:backend
 ```
+
+`pnpm test` runs the frontend component tests and the backend end-to-end tests together. CI applies the migrations and seeds the test database before running it.
 
 ### Deployment
 

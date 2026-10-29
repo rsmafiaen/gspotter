@@ -1,9 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
+/*
+ * Fonts are self-hosted and bundled by Vite instead of loaded from Google
+ * Fonts. That removes two third-party round trips from the critical path and
+ * lets the HTML preload the exact files.
+ *
+ * The `* Fallback` faces describe the local Georgia fallback with the web
+ * font's metrics, so swapping from the fallback to the web font does not
+ * reflow the page (prevents Cumulative Layout Shift).
+ */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./assets/fonts/lora-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lora Fallback';
+  src: local('Georgia');
+  size-adjust: 104.98%;
+  ascent-override: 95.83%;
+  descent-override: 26.1%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 500 900;
+  font-display: swap;
+  src: url('./assets/fonts/playfair-display-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Playfair Display Fallback';
+  src: local('Georgia');
+  size-adjust: 101.39%;
+  ascent-override: 106.72%;
+  descent-override: 24.76%;
+  line-gap-override: 0%;
+}
+
 @theme {
-  --font-sans: 'Lora', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Lora', 'Lora Fallback', Georgia, 'Times New Roman', serif;
+  --font-display:
+    'Playfair Display', 'Playfair Display Fallback', Georgia, serif;
 }
 
 /* Light theme: the creamy head of a settling pint. */
@@ -31,6 +75,8 @@
   --cream-head: rgba(250, 243, 228, 0.9);
   --harp-gold: #a87a1f;
   --cream-dark: #6d1419;
+  /* Ink used on the always-light sticky header. */
+  --header-ink: #5c1116;
 }
 
 /* Dark theme: a settled pint, near-black with a ruby undertone. */
@@ -58,6 +104,8 @@
   --cream-head: rgba(245, 240, 220);
   --harp-gold: #d3ad57;
   --cream-dark: rgba(189, 172, 103);
+  /* The header keeps its cream background in dark mode, so it needs dark ink. */
+  --header-ink: #4a1014;
 }
 
 * {
@@ -87,7 +135,7 @@ body {
 h1,
 h2,
 h3 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Playfair Display', 'Playfair Display Fallback', Georgia, serif;
   letter-spacing: -0.01em;
 }
 
@@ -151,7 +199,7 @@ pre code {
 }
 
 .display-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Playfair Display', 'Playfair Display Fallback', Georgia, serif;
 }
 
 .island-shell {
@@ -340,6 +388,17 @@ pre code {
   padding: 1rem;
 }
 
+/* Only takes up space on non-secure origins, where the app is forced to use a
+   mock position. The flag is set by an inline script before the first paint, so
+   the notice never appears late and shifts the page. */
+.mock-location-notice {
+  display: none;
+}
+
+html[data-mock-location] .mock-location-notice {
+  display: block;
+}
+
 .demo-alert-danger {
   border-color: rgba(196, 71, 71, 0.3);
   background: rgba(196, 71, 71, 0.1);
@@ -494,8 +553,32 @@ a {
   z-index: 900;
 }
 
+/* Cluster marker for overlapping pubs. Kept at 44x44 so it is a comfortable
+ * touch target (WCAG 2.2 target size) and never overlaps another marker. */
+.gspotter-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--cream-head);
+  border-radius: 9999px;
+  background: var(--lagoon-deep);
+  color: var(--stout-black);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
 .rise-in {
   animation: rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The live map fades in on top of the server-rendered map poster. */
+.map-fade-in {
+  animation: map-fade-in 300ms ease-out both;
 }
 
 @keyframes rise-in {
@@ -506,5 +589,14 @@ a {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes map-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

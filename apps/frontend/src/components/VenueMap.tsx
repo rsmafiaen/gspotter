@@ -1,17 +1,19 @@
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
-import { assetUrl } from '#/lib/asset-url'
+import harpIconUrl from '#/assets/harp.svg?url'
+import harpShadowUrl from '#/assets/harp_shadow.svg?url'
 
-interface VenueMapProps {
+export interface VenueMapProps {
   lat: number
   lon: number
   name: string
 }
 
 const harpIcon = new L.Icon({
-  iconUrl: assetUrl('harp.svg'),
-  shadowUrl: assetUrl('harp_shadow.svg'),
+  iconUrl: harpIconUrl,
+  shadowUrl: harpShadowUrl,
   iconSize: [46, 46],
   shadowSize: [50, 50],
   iconAnchor: [23, 23],
@@ -31,10 +33,10 @@ export default function VenueMap({ lat, lon, name }: VenueMapProps) {
       zoomControl={false}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={[lat, lon]} icon={harpIcon} title={name} />
+      <Marker position={[lat, lon]} icon={harpIcon} title={name} alt={name} />
     </MapContainer>
   )
 }

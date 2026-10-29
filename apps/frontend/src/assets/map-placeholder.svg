@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="presentation">
+  <!-- Neutral, theme-independent map skeleton: grey at low opacity reads as
+       texture on both the light and the dark surface colour. -->
+  <g fill="rgba(128,128,128,0.10)">
+    <rect x="24" y="24" width="150" height="96" rx="10" />
+    <rect x="198" y="24" width="118" height="96" rx="10" />
+    <rect x="340" y="24" width="128" height="60" rx="10" />
+    <rect x="492" y="24" width="124" height="96" rx="10" />
+    <rect x="24" y="146" width="104" height="88" rx="10" />
+    <rect x="152" y="146" width="164" height="88" rx="10" />
+    <rect x="340" y="110" width="128" height="124" rx="10" />
+    <rect x="492" y="146" width="124" height="88" rx="10" />
+    <rect x="24" y="260" width="150" height="116" rx="10" />
+    <rect x="198" y="260" width="118" height="116" rx="10" />
+    <rect x="340" y="260" width="128" height="116" rx="10" />
+    <rect x="492" y="260" width="124" height="116" rx="10" />
+  </g>
+  <g stroke="rgba(128,128,128,0.22)" stroke-linecap="round" fill="none">
+    <path d="M8 132 L632 132" stroke-width="12" />
+    <path d="M8 246 L632 246" stroke-width="9" />
+    <path d="M184 8 L184 392" stroke-width="9" />
+    <path d="M326 8 L326 392" stroke-width="7" />
+    <path d="M478 8 L478 392" stroke-width="7" />
+    <path d="M8 384 L632 384" stroke-width="6" />
+  </g>
+  <g stroke="rgba(128,128,128,0.16)" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M96 8 L96 392" />
+    <path d="M256 8 L256 392" />
+    <path d="M400 8 L400 392" />
+    <path d="M558 8 L558 392" />
+    <path d="M8 76 L632 76" />
+    <path d="M8 200 L632 200" />
+    <path d="M8 324 L632 324" />
+  </g>
+  <circle cx="320" cy="200" r="26" fill="rgba(128,128,128,0.12)" stroke="rgba(128,128,128,0.28)" stroke-width="3" />
+  <circle cx="320" cy="200" r="7" fill="rgba(128,128,128,0.32)" />
+</svg>

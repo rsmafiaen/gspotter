@@ -9,17 +9,25 @@ import {
   Tooltip,
   useMap,
 } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { useNavigate } from '@tanstack/react-router'
 
 import { formatPrice } from '../lib/format-price'
-import { assetUrl } from '#/lib/asset-url'
+import harpIconUrl from '#/assets/harp.svg?url'
+import harpShadowUrl from '#/assets/harp_shadow.svg?url'
 import { MOCK_LOCATION_NAME } from '../lib/location'
 import type { Coordinates } from '../lib/location'
 import type { SearchResult } from '../types/search'
 
 const DEFAULT_CENTER: [number, number] = [63.4305, 10.3951]
 const DEFAULT_ZOOM = 15
+
+// Using the single `tile` host (instead of the a/b/c subdomains) means the
+// browser only needs one connection, and preconnecting to it in the document
+// head pays off for every tile request.
+const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 
 function FlyToResult({ coordinates }: { coordinates: number[] | undefined }) {
   const map = useMap()
@@ -34,8 +42,8 @@ function FlyToResult({ coordinates }: { coordinates: number[] | undefined }) {
 }
 
 const harpIcon = new L.Icon({
-  iconUrl: assetUrl('harp.svg'),
-  shadowUrl: assetUrl('harp_shadow.svg'),
+  iconUrl: harpIconUrl,
+  shadowUrl: harpShadowUrl,
   iconSize: [46, 46],
   shadowSize: [50, 50],
   iconAnchor: [23, 23],
@@ -43,18 +51,45 @@ const harpIcon = new L.Icon({
   popupAnchor: [0, -25],
 })
 
+/**
+ * Overlapping pins are merged into a single, larger target. This keeps the map
+ * usable on touch screens: without clustering the pins on top of each other
+ * cannot be tapped individually (WCAG 2.2 target size).
+ */
+function createClusterIcon(cluster: L.MarkerCluster) {
+  const count = cluster.getChildCount()
+
+  return L.divIcon({
+    html: `<span aria-hidden="true">${count}</span><span class="sr-only">${count} ${
+      count === 1 ? 'pub' : 'pubs'
+    }, zoom in to see them</span>`,
+    className: 'gspotter-cluster',
+    iconSize: L.point(44, 44, true),
+    iconAnchor: [22, 22],
+  })
+}
+
+export interface MapProps {
+  nearby?: SearchResult[]
+  userLocation?: Coordinates | null
+  flyTo?: number[]
+  isMockLocation?: boolean
+}
+
 export default function Map({
   nearby = [],
   userLocation,
   flyTo,
   isMockLocation = false,
-}: {
-  nearby?: SearchResult[]
-  userLocation?: Coordinates | null
-  flyTo?: number[]
-  isMockLocation?: boolean
-}) {
+}: MapProps) {
   const navigate = useNavigate()
+  // Start at the user's position when we already know it. Otherwise Leaflet
+  // first downloads tiles for the default view and immediately replaces them
+  // after flying to the user, wasting both time and bandwidth.
+  const initialCenter: [number, number] = userLocation
+    ? [userLocation.lat, userLocation.lon]
+    : DEFAULT_CENTER
+  const initialZoom = userLocation ? 12 : DEFAULT_ZOOM
   const markers = nearby.filter(
     (venue, index, all) =>
       all.findIndex(
@@ -66,45 +101,54 @@ export default function Map({
   )
 
   return (
-    <section id="map" className="relative">
+    <section id="map" aria-label="Map of pubs near you" className="relative">
       <MapContainer
-        center={DEFAULT_CENTER}
-        zoom={DEFAULT_ZOOM}
+        center={initialCenter}
+        zoom={initialZoom}
         scrollWheelZoom={true}
         className="h-100 w-full rounded-2xl"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="&copy; OpenStreetMap contributors"
+          url={TILE_URL}
         />
         <FlyToResult coordinates={flyTo} />
-        {markers.map((curr) => (
-          <Marker
-            key={`${curr.type}-${curr.name}-${curr.lat}-${curr.lon}`}
-            icon={harpIcon}
-            position={[curr.lat, curr.lon]}
-            eventHandlers={{
-              click: () => {
-                if (curr.cityId) {
-                  void navigate({
-                    to: '/$cityId/venues/$venueId',
-                    params: { cityId: curr.cityId, venueId: curr.id },
-                  })
-                }
-              },
-            }}
-          >
-            <Tooltip direction="top" offset={[0, -20]}>
-              <strong>{curr.name}</strong>
-              {curr.address && <span className="block">{curr.address}</span>}
-              {curr.latestPriceSighting && (
-                <span className="block">
-                  {formatPrice(curr.latestPriceSighting)}
-                </span>
-              )}
-            </Tooltip>
-          </Marker>
-        ))}
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={60}
+          showCoverageOnHover={false}
+          iconCreateFunction={createClusterIcon}
+        >
+          {markers.map((curr) => (
+            <Marker
+              key={`${curr.type}-${curr.name}-${curr.lat}-${curr.lon}`}
+              icon={harpIcon}
+              position={[curr.lat, curr.lon]}
+              title={curr.name}
+              alt={curr.name}
+              eventHandlers={{
+                click: () => {
+                  if (curr.cityId) {
+                    void navigate({
+                      to: '/$cityId/venues/$venueId',
+                      params: { cityId: curr.cityId, venueId: curr.id },
+                    })
+                  }
+                },
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -20]}>
+                <strong>{curr.name}</strong>
+                {curr.address && <span className="block">{curr.address}</span>}
+                {curr.latestPriceSighting && (
+                  <span className="block">
+                    {formatPrice(curr.latestPriceSighting)}
+                  </span>
+                )}
+              </Tooltip>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
         {userLocation && (
           <CircleMarker
             center={[userLocation.lat, userLocation.lon]}

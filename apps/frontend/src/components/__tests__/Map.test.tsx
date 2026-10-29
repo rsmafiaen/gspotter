@@ -57,6 +57,9 @@ vi.mock('react-leaflet', () => ({
   Popup: ({ children }: PopupProps) => (
     <div data-testid="popup">{children}</div>
   ),
+  Tooltip: ({ children }: PopupProps) => (
+    <div data-testid="tooltip">{children}</div>
+  ),
   useMap: () => ({ flyTo }),
 }))
 
@@ -64,6 +67,12 @@ vi.mock('leaflet', () => ({
   default: {
     Icon: class MockIcon {},
   },
+}))
+
+vi.mock('react-leaflet-cluster', () => ({
+  default: ({ children }: { children: ReactNode }) => (
+    <div data-testid="marker-cluster">{children}</div>
+  ),
 }))
 
 describe('Map', () => {
@@ -79,7 +88,7 @@ describe('Map', () => {
     expect(screen.getByTestId('map')).toHaveAttribute('data-zoom', '15')
     expect(screen.getByTestId('tile-layer')).toHaveAttribute(
       'data-url',
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     )
 
     const marker = screen.getByTestId('marker')

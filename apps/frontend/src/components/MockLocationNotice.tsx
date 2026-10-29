@@ -5,10 +5,14 @@ const REPOSITORY_URL = 'https://git.ntnu.no/IT2810-H26/T09-Project-2'
 /**
  * Shown when the app fell back to MOCK_LOCATION because the browser refused to
  * share a real position over a non-secure origin.
+ *
+ * It is always rendered so the server and client markup match; whether it takes
+ * up space is decided before the first paint by the `data-mock-location` flag
+ * on <html> (see __root.tsx and the .mock-location-notice rule in styles.css).
  */
 export default function MockLocationNotice() {
   return (
-    <aside className="demo-alert rise-in mb-6">
+    <aside className="demo-alert mock-location-notice rise-in mb-6">
       <p className="island-kicker">Mock position</p>
       <h2 className="mt-1 text-base font-extrabold">
         We are showing a mock position instead of your real one

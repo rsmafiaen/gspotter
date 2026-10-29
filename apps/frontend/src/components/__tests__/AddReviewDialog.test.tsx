@@ -38,7 +38,7 @@ async function fillValidReview(
 ) {
   await user.type(screen.getByLabelText('Your name'), 'Kari')
   await user.type(screen.getByLabelText('Your review'), 'Great beer')
-  await user.click(screen.getByRole('radio', { name: '4 out of 5 stars' }))
+  await user.click(screen.getByRole('radio', { name: '4 out of 5 harps' }))
 }
 
 describe('AddReviewDialog', () => {
@@ -87,7 +87,7 @@ describe('AddReviewDialog', () => {
     const { user, dialog } = await openDialog()
 
     await user.type(screen.getByLabelText('Your name'), 'Kari')
-    await user.click(screen.getByRole('radio', { name: '4 out of 5 stars' }))
+    await user.click(screen.getByRole('radio', { name: '4 out of 5 harps' }))
     submitForm(dialog)
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -109,7 +109,7 @@ describe('AddReviewDialog', () => {
 
     await user.type(screen.getByLabelText('Your name'), '  Kari  ')
     await user.type(screen.getByLabelText('Your review'), '  Great beer  ')
-    await user.click(screen.getByRole('radio', { name: '4 out of 5 stars' }))
+    await user.click(screen.getByRole('radio', { name: '4 out of 5 harps' }))
 
     submitForm(dialog)
 

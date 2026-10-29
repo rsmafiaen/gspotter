@@ -4,13 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { graphqlFetch } from '#/graphql/client'
 import { CREATE_REVIEW } from '#/graphql/venues'
-import { assetUrl } from '#/lib/asset-url'
+import HARP_SRC from '#/assets/harp.svg?url'
 import type { VenueReview } from '#/types/venue'
 
 const USERNAME_STORAGE_KEY = 'g-spotter:review-username'
 const BODY_MAX_LENGTH = 1000
 const RATING_VALUES = [1, 2, 3, 4, 5]
-const HARP_SRC = assetUrl('harp.svg')
 
 interface ReviewInput {
   venueId: string

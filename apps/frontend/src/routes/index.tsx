@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import Map from '../components/Map'
+import ClientMap from '#/components/ClientMap'
 import MockLocationNotice from '#/components/MockLocationNotice'
 import NearbyVenues from '#/components/NearbyVenues'
 import SearchBox from '#/components/SearchBox'
@@ -204,13 +204,17 @@ function App() {
   }, [coordinates])
 
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      {usingMockLocation && <MockLocationNotice />}
-      <section className="island-shell rise-in relative overflow-hidden rounded-4xl px-6 py-10 sm:px-10 sm:py-14 mb-10">
+    <main id="main-content" className="page-wrap px-4 pb-8 pt-14">
+      <h1 className="sr-only">Find pubs near you</h1>
+      <MockLocationNotice />
+      {/* No `rise-in` here: the map poster inside this section must be painted
+          on the first frame, and an animation that starts at opacity: 0 keeps
+          it from being reported as the LCP element. */}
+      <section className="island-shell relative mb-10 overflow-hidden rounded-4xl px-6 py-10 sm:px-10 sm:py-14">
         <div className="mb-3 flex justify-end">
           <SearchBox coordinates={coordinates} filters={searchFilters} />
         </div>
-        <Map
+        <ClientMap
           nearby={nearbyVenues}
           userLocation={coordinates}
           flyTo={flyTo}

@@ -4,3 +4,5 @@ yarn.lock
 .tanstack
 .agents
 **/src/generated/
+# Generated Lighthouse report kept at the repo root for reference.
+lighthouse.json

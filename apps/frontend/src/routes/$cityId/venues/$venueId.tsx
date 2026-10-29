@@ -1,25 +1,24 @@
 import type { ReactNode } from 'react'
-import type { venue } from '#/types/venue'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import Breadcrumbs from '#/components/Breadcrumbs'
 import AddReviewDialog from '#/components/AddReviewDialog'
 import { venueToSearchResult } from '#/components/VenueCard'
 import { ViewVenue } from '#/components/ViewVenue'
-import VenueMap from '#/components/VenueMap'
-import { graphqlFetch } from '#/graphql/client'
-import { GET_VENUE } from '#/graphql/venues'
+import ClientVenueMap from '#/components/ClientVenueMap'
+import { venuesQueryOptions } from '#/graphql/venues'
 
 export const Route = createFileRoute('/$cityId/venues/$venueId')({
+  // Prefetch during SSR: the venue page used to paint a loading shell first, so
+  // the footer moved and the map tiles became the LCP element.
+  loader: ({ context }) =>
+    context.queryClient.prefetchQuery(venuesQueryOptions),
   component: VenuePage,
 })
 
 function VenuePage() {
   const { cityId, venueId } = Route.useParams()
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['venues'],
-    queryFn: () => graphqlFetch<{ venue: venue[] }>(GET_VENUE),
-  })
+  const { data, isPending, isError } = useQuery(venuesQueryOptions)
 
   if (isPending) {
     return (
@@ -53,7 +52,7 @@ function VenuePage() {
   )
 
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
+    <main id="main-content" className="page-wrap px-4 pb-8 pt-14">
       <h1 className="sr-only">{current.name}</h1>
       <Breadcrumbs
         items={[
@@ -71,7 +70,11 @@ function VenuePage() {
           aria-label={`Map showing ${current.name}`}
           className="overflow-hidden rounded-2xl bg-(--surface-strong) p-2"
         >
-          <VenueMap lat={current.lat} lon={current.lon} name={current.name} />
+          <ClientVenueMap
+            lat={current.lat}
+            lon={current.lon}
+            name={current.name}
+          />
         </section>
       </div>
 
@@ -118,7 +121,7 @@ function VenuePage() {
 
 function PageShell({ children }: { children: ReactNode }) {
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
+    <main id="main-content" className="page-wrap px-4 pb-8 pt-14">
       <div className="rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
         {children}
       </div>

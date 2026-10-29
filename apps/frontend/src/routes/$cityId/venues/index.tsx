@@ -1,22 +1,22 @@
 import type { ReactNode } from 'react'
-import type { venue } from '#/types/venue'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import Breadcrumbs from '#/components/Breadcrumbs'
 import VenueCard from '#/components/VenueCard'
-import { graphqlFetch } from '#/graphql/client'
-import { GET_VENUE } from '#/graphql/venues'
+import { venuesQueryOptions } from '#/graphql/venues'
 
 export const Route = createFileRoute('/$cityId/venues/')({
+  // Prefetch during SSR so the list is in the first paint. Rendering a loading
+  // shell instead makes the page grow once the data lands, which shifts the
+  // footer by a sixth of the viewport.
+  loader: ({ context }) =>
+    context.queryClient.prefetchQuery(venuesQueryOptions),
   component: CityVenuesPage,
 })
 
 function CityVenuesPage() {
   const { cityId } = Route.useParams()
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['venues'],
-    queryFn: () => graphqlFetch<{ venue: venue[] }>(GET_VENUE),
-  })
+  const { data, isPending, isError } = useQuery(venuesQueryOptions)
 
   if (isPending) {
     return (
@@ -54,7 +54,7 @@ function CityVenuesPage() {
   }
 
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
+    <main id="main-content" className="page-wrap px-4 pb-8 pt-14">
       <Breadcrumbs items={[{ label: cityName }]} />
       <h1 className="mt-4 text-3xl font-extrabold">{cityName}</h1>
       <p className="mt-1 text-sm text-(--sea-ink-soft)">
@@ -72,7 +72,7 @@ function CityVenuesPage() {
 
 function PageShell({ children }: { children: ReactNode }) {
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
+    <main id="main-content" className="page-wrap px-4 pb-8 pt-14">
       <div className="rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
         {children}
       </div>

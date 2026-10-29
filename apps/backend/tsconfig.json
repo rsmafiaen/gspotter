@@ -1,5 +1,5 @@
 {
-  "include": ["src"],
+  "include": ["src", "playwright.config.ts", "tests/e2e"],
 
   "compilerOptions": {
     "target": "ES2022",

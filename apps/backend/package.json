@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "dotenv -e .env -- tsx watch src/index.ts",
     "start": "dotenv -e .env -- tsx src/index.ts",
+    "test:e2e": "dotenv -e .env -- playwright test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "graphql": "^16.9.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^22.20.4",
     "dotenv-cli": "^11.0.0",
     "tsx": "^4.23.15",

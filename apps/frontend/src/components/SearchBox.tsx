@@ -14,6 +14,8 @@ const COLLAPSED_RESULT_COUNT = 3
 const SEARCH_QUERY = `
   query Search($term: String!) {
     search(term: $term) {
+      id
+      cityId
       type
       name
       lat

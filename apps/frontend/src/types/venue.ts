@@ -21,11 +21,22 @@ export interface VenuePriceSighting {
   timeSighted: string
 }
 
+export interface VenueReview {
+  id: string
+  username: string
+  body: string
+  rating: number
+  timeCreated: string
+}
+
 export interface venue {
   id: string
   name: string
   address: string
+  lat: number
+  lon: number
   city: VenueCity
   openingHours: VenueOpeningHours[]
-  pricesSighted: VenuePriceSighting[]
+  pricesSighted?: VenuePriceSighting[]
+  reviews: VenueReview[]
 }

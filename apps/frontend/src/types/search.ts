@@ -15,6 +15,8 @@ export interface SearchPriceSighting {
 }
 
 export interface SearchResult {
+  id: string
+  cityId: string | null
   type: 'venue' | 'city'
   name: string
   lat: number
@@ -22,4 +24,6 @@ export interface SearchResult {
   address: string | null
   openingHours: SearchOpeningHours[] | null
   latestPriceSighting: SearchPriceSighting | null
+  averageRating?: number | null
+  reviewCount?: number
 }

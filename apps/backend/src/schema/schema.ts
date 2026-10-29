@@ -72,6 +72,8 @@ const priceSightingRef = builder.prismaObject('PriceSighting', {
 })
 
 type SearchResultItem = {
+  id: string
+  cityId: string | null
   type: 'venue' | 'city'
   name: string
   lat: number
@@ -85,6 +87,8 @@ const searchResultRef = builder
   .objectRef<SearchResultItem>('SearchResult')
   .implement({
     fields: (t) => ({
+      id: t.exposeString('id'),
+      cityId: t.exposeString('cityId', { nullable: true }),
       type: t.exposeString('type'),
       name: t.exposeString('name'),
       lat: t.exposeFloat('lat'),
@@ -194,6 +198,8 @@ builder.queryType({
 
         return [
           ...venues.map((venue) => ({
+            id: venue.id,
+            cityId: venue.cityId,
             type: 'venue' as const,
             name: venue.name,
             lat: venue.lat,
@@ -203,6 +209,8 @@ builder.queryType({
             latestPriceSighting: latestUnlimitedSighting(venue.pricesSighted),
           })),
           ...cities.map((city) => ({
+            id: city.id,
+            cityId: null,
             type: 'city' as const,
             name: city.name,
             lat: city.centreLat,

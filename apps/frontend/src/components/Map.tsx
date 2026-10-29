@@ -1,40 +1,69 @@
-import { useEffect, useState } from 'react'
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
+'use client'
+
+import { useEffect } from 'react'
+import {
+  CircleMarker,
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+} from 'react-leaflet'
+import L from 'leaflet'
 
 import { formatPrice } from '../lib/format-price'
+import { MOCK_LOCATION_NAME } from '../lib/location'
+import type { Coordinates } from '../lib/location'
 import type { SearchResult } from '../types/search'
-import { SearchBox } from './SearchBox'
 
 const DEFAULT_CENTER: [number, number] = [63.4305, 10.3951]
 const DEFAULT_ZOOM = 15
 
-function FlyToResult({ result }: { result: SearchResult | null }) {
+function FlyToResult({ coordinates }: { coordinates: number[] | undefined }) {
   const map = useMap()
 
   useEffect(() => {
-    if (result) {
-      map.flyTo([result.lat, result.lon], result.type === 'city' ? 12 : 16)
+    if (coordinates && coordinates.length == 2) {
+      map.flyTo([coordinates[0], coordinates[1]], 12)
     }
-  }, [result, map])
+  }, [coordinates, map])
 
   return null
 }
 
-export default function Map({
-  onSelect,
-}: {
-  onSelect?: (result: SearchResult) => void
-}) {
-  const [selected, setSelected] = useState<SearchResult | null>(null)
+const harpIcon = new L.Icon({
+  iconUrl: 'harp.svg',
+  shadowUrl: 'harp_shadow.svg',
+  iconSize: [46, 46],
+  shadowSize: [50, 50],
+  iconAnchor: [23, 23],
+  shadowAnchor: [25, 25],
+  popupAnchor: [0, -47.5],
+})
 
-  function handleSelect(result: SearchResult) {
-    setSelected(result)
-    onSelect?.(result)
-  }
+export default function Map({
+  nearby = [],
+  userLocation,
+  flyTo,
+  isMockLocation = false,
+}: {
+  nearby?: SearchResult[]
+  userLocation?: Coordinates | null
+  flyTo?: number[]
+  isMockLocation?: boolean
+}) {
+  const markers = nearby.filter(
+    (venue, index, all) =>
+      all.findIndex(
+        (other) =>
+          other.name === venue.name &&
+          other.lat === venue.lat &&
+          other.lon === venue.lon,
+      ) === index,
+  )
 
   return (
     <section id="map" className="relative">
-      <SearchBox onSelect={handleSelect} />
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -45,21 +74,40 @@ export default function Map({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <FlyToResult result={selected} />
-        {selected && (
-          <Marker position={[selected.lat, selected.lon]}>
+        <FlyToResult coordinates={flyTo} />
+        {markers.map((curr) => (
+          <Marker
+            key={`${curr.type}-${curr.name}-${curr.lat}-${curr.lon}`}
+            icon={harpIcon}
+            position={[curr.lat, curr.lon]}
+          >
             <Popup>
-              <strong>{selected.name}</strong>
-              {selected.address && (
-                <span className="block">{selected.address}</span>
-              )}
-              {selected.latestPriceSighting && (
+              <strong>{curr.name}</strong>
+              {curr.address && <span className="block">{curr.address}</span>}
+              {curr.latestPriceSighting && (
                 <span className="block">
-                  {formatPrice(selected.latestPriceSighting)}
+                  {formatPrice(curr.latestPriceSighting)}
                 </span>
               )}
             </Popup>
           </Marker>
+        ))}
+        {userLocation && (
+          <CircleMarker
+            center={[userLocation.lat, userLocation.lon]}
+            radius={8}
+            pathOptions={{
+              color: '#328f97',
+              fillColor: '#4fb8b2',
+              fillOpacity: 0.85,
+            }}
+          >
+            <Popup>
+              {isMockLocation
+                ? `Mock location: ${MOCK_LOCATION_NAME}`
+                : 'Your location'}
+            </Popup>
+          </CircleMarker>
         )}
       </MapContainer>
     </section>

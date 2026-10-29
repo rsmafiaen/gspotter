@@ -38,6 +38,26 @@ function formatRun(run: Day[]): string {
 // consecutive days into ranges and naming whole weekdays/weekends.
 // Examples: MON–FRI → "Weekdays", SAT–SUN → "Weekends",
 // MON–WED → "Monday–Wednesday", MON/WED/FRI → "Monday, Wednesday and Friday".
+export function formatOpeningTime(iso: string): string {
+  return iso.slice(11, 16)
+}
+
+export interface OpeningHoursEntry {
+  days: string[]
+  opening: string
+  closing: string
+}
+
+/** Compact one-line summary, e.g. "Weekdays 14:00–02:00 · Weekends 12:00–03:00". */
+export function formatOpeningHours(entries: OpeningHoursEntry[]): string {
+  return entries
+    .map(
+      (entry) =>
+        `${formatOpeningDays(entry.days)} ${formatOpeningTime(entry.opening)}–${formatOpeningTime(entry.closing)}`,
+    )
+    .join(' · ')
+}
+
 export function formatOpeningDays(days: string[]): string {
   const sorted = [...new Set(days.map((day) => day.toUpperCase()))]
     .filter(isDay)

@@ -1,12 +1,9 @@
-import { Link } from '@tanstack/react-router'
-
-import { formatOpeningDays } from '#/lib/format-opening-hours'
+import {
+  formatOpeningDays,
+  formatOpeningTime,
+} from '#/lib/format-opening-hours'
 import { formatPrice } from '#/lib/format-price'
 import type { SearchResult } from '#/types/search'
-
-function formatTime(iso: string) {
-  return iso.slice(11, 16)
-}
 
 export function ViewVenue({
   venue,
@@ -60,8 +57,8 @@ export function ViewVenue({
                 {formatOpeningDays(openingHours.days)}
               </span>
               <span className="text-(--sea-ink-soft)">
-                {formatTime(openingHours.opening)} -{' '}
-                {formatTime(openingHours.closing)}
+                {formatOpeningTime(openingHours.opening)} -{' '}
+                {formatOpeningTime(openingHours.closing)}
               </span>
             </li>
           ))}
@@ -72,24 +69,5 @@ export function ViewVenue({
         </p>
       )}
     </article>
-  )
-}
-
-export default function VenueLoader({ venue }: { venue: SearchResult | null }) {
-  // Only venues have a card; a selected city just moves the map.
-  if (!venue || venue.type !== 'venue') return null
-
-  const card = <ViewVenue venue={venue} />
-
-  if (!venue.cityId) return card
-
-  return (
-    <Link
-      to="/$cityId/venues/$venueId"
-      params={{ cityId: venue.cityId, venueId: venue.id }}
-      className="block rounded-2xl transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--lagoon-deep)"
-    >
-      {card}
-    </Link>
   )
 }

@@ -120,6 +120,14 @@ builder.queryType({
       args: {
         lat: t.arg.float(),
         lon: t.arg.float(),
+        limit: t.arg.int({
+          description:
+            'Return at most this many venues. Omit to return every venue.',
+        }),
+        maxDistanceKm: t.arg.float({
+          description:
+            'Only return venues within this distance in kilometres of lat/lon.',
+        }),
       },
       resolve: async (query, _parent, args) => {
         if (args.lat == null || args.lon == null) {
@@ -130,9 +138,20 @@ builder.queryType({
           return venues
         }
 
+        // haversine_distance returns metres. A null radius/limit means "no
+        // restriction"; Postgres treats LIMIT NULL as no limit.
+        const maxDistanceMeters =
+          args.maxDistanceKm == null
+            ? null
+            : Math.max(0, args.maxDistanceKm) * 1000
+        const limit = args.limit == null ? null : Math.max(0, args.limit)
+
         const nearest = await prisma.$queryRaw<{ id: string }[]>`
           SELECT id FROM venue
+          WHERE ${maxDistanceMeters}::double precision IS NULL
+             OR haversine_distance(${args.lat}, ${args.lon}, lat, lon) <= ${maxDistanceMeters}::double precision
           ORDER BY haversine_distance(${args.lat}, ${args.lon}, lat, lon), name
+          LIMIT ${limit}::integer
         `
 
         const venues = await prisma.venue.findMany({

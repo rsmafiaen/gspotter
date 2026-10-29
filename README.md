@@ -2,6 +2,8 @@
 
 ### Site deployed to [http://it2810-09.idi.ntnu.no/project2](http://it2810-09.idi.ntnu.no/project2), backend deployed to [http://it2810-09.idi.ntnu.no:3001](http://it2810-09.idi.ntnu.no:3001)
 
+> #### !NB: We use location services in our app to use the users location to find nearby pubs. The JS geolocation API is blocked on most browsers if the site is not encrypted (https) or a loopback (localhost), so to see the full capabilities of our site, please clone the repo and check out the site on `localhost:3000/project2`
+
 Our inital spec, written for the first deliverable, and what we are basing the development on, is outlined in [./docs/inital-plan.md](./docs/initial-plan.md)
 
 ## Index

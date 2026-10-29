@@ -40,3 +40,15 @@ export interface venue {
   pricesSighted?: VenuePriceSighting[]
   reviews: VenueReview[]
 }
+
+export interface NearbyVenue {
+  id: string
+  name: string
+  address: string
+  lat: number
+  lon: number
+  city: { id: string }
+  openingHours: VenueOpeningHours[]
+  pricesSighted: VenuePriceSighting[]
+  reviews: { rating: number }[]
+}

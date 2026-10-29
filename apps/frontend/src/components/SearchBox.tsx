@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
 
@@ -65,11 +66,8 @@ function SearchIcon() {
   )
 }
 
-export function SearchBox({
-  onSelect,
-}: {
-  onSelect: (result: SearchResult) => void
-}) {
+export function SearchBox() {
+  const navigate = useNavigate()
   const inputId = useId()
   const listId = useId()
 
@@ -128,7 +126,18 @@ export function SearchBox({
     setOpen(false)
     setShowAll(false)
     setActiveIndex(-1)
-    onSelect(result)
+
+    if (result.type === 'city') {
+      void navigate({
+        to: '/$cityId/venues',
+        params: { cityId: result.id },
+      })
+    } else if (result.cityId) {
+      void navigate({
+        to: '/$cityId/venues/$venueId',
+        params: { cityId: result.cityId, venueId: result.id },
+      })
+    }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {

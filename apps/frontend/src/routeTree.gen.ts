@@ -10,30 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
-import { Route as DemoTodosRouteImport } from './routes/demo/todos'
 import { Route as CityIdVenuesIndexRouteImport } from './routes/$cityId/venues/index'
 import { Route as CityIdVenuesVenueIdRouteImport } from './routes/$cityId/venues/$venueId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoTodosRoute = DemoTodosRouteImport.update({
-  id: '/demo/todos',
-  path: '/demo/todos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CityIdVenuesIndexRoute = CityIdVenuesIndexRouteImport.update({
@@ -49,61 +31,30 @@ const CityIdVenuesVenueIdRoute = CityIdVenuesVenueIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/demo/todos': typeof DemoTodosRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
   '/$cityId/venues/': typeof CityIdVenuesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/demo/todos': typeof DemoTodosRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
   '/$cityId/venues': typeof CityIdVenuesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/demo/todos': typeof DemoTodosRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
   '/$cityId/venues/': typeof CityIdVenuesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/about'
-    | '/demo/tanstack-query'
-    | '/demo/todos'
-    | '/$cityId/venues/$venueId'
-    | '/$cityId/venues/'
+  fullPaths: '/' | '/$cityId/venues/$venueId' | '/$cityId/venues/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/about'
-    | '/demo/tanstack-query'
-    | '/demo/todos'
-    | '/$cityId/venues/$venueId'
-    | '/$cityId/venues'
-  id:
-    | '__root__'
-    | '/'
-    | '/about'
-    | '/demo/tanstack-query'
-    | '/demo/todos'
-    | '/$cityId/venues/$venueId'
-    | '/$cityId/venues/'
+  to: '/' | '/$cityId/venues/$venueId' | '/$cityId/venues'
+  id: '__root__' | '/' | '/$cityId/venues/$venueId' | '/$cityId/venues/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
-  DemoTodosRoute: typeof DemoTodosRoute
   CityIdVenuesVenueIdRoute: typeof CityIdVenuesVenueIdRoute
   CityIdVenuesIndexRoute: typeof CityIdVenuesIndexRoute
 }
@@ -115,27 +66,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/todos': {
-      id: '/demo/todos'
-      path: '/demo/todos'
-      fullPath: '/demo/todos'
-      preLoaderRoute: typeof DemoTodosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$cityId/venues/': {
@@ -157,9 +87,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
-  DemoTodosRoute: DemoTodosRoute,
   CityIdVenuesVenueIdRoute: CityIdVenuesVenueIdRoute,
   CityIdVenuesIndexRoute: CityIdVenuesIndexRoute,
 }

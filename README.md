@@ -61,7 +61,7 @@ cp apps/backend/.env.example apps/backend/.env
 
 # create the database schema and optionally seed it
 pnpm db:generate
-pnpm db:push
+pnpm db:deploy
 pnpm db:seed
 
 # run the frontend and backend together
@@ -74,20 +74,22 @@ Frontend: http://localhost:3000 · GraphQL API: http://localhost:3001
 
 ### Commands
 
-| Command                                        | What it does                                           |
-| ---------------------------------------------- | ------------------------------------------------------ |
-| `pnpm install` / `pnpm install:all` / `pnpm i` | Install dependencies in all workspaces                 |
-| `pnpm dev`                                     | Run frontend and backend concurrently with live reload |
-| `pnpm build`                                   | Build all workspaces that define a build               |
-| `pnpm typecheck`                               | Typecheck all workspaces                               |
-| `pnpm lint` / `pnpm format` / `pnpm check`     | Lint, auto-fix format, and check formatting            |
-| `pnpm db:setup`                                | Provision PostgreSQL natively on Ubuntu (see below)    |
-| `pnpm db:generate`                             | Regenerate the Prisma client and Pothos types          |
-| `pnpm db:push`                                 | Push the Prisma schema to the database                 |
-| `pnpm db:migrate`                              | Create/apply a development migration                   |
-| `pnpm db:seed`                                 | Seed the database                                      |
-| `pnpm db:studio`                               | Open Prisma Studio                                     |
-| `pnpm generate-routes`                         | Regenerate the TanStack Router route tree              |
+| Command                                        | What it does                                            |
+| ---------------------------------------------- | ------------------------------------------------------- |
+| `pnpm install` / `pnpm install:all` / `pnpm i` | Install dependencies in all workspaces                  |
+| `pnpm dev`                                     | Run frontend and backend concurrently with live reload  |
+| `pnpm build`                                   | Build all workspaces that define a build                |
+| `pnpm typecheck`                               | Typecheck all workspaces                                |
+| `pnpm lint` / `pnpm format` / `pnpm check`     | Lint, auto-fix format, and check formatting             |
+| `pnpm db:setup`                                | Provision PostgreSQL natively on Ubuntu (see below)     |
+| `pnpm db:generate`                             | Regenerate the Prisma client and Pothos types           |
+| `pnpm db:push`                                 | Push the Prisma schema to the database (prototyping)    |
+| `pnpm db:migrate`                              | Create/apply a development migration                    |
+| `pnpm db:deploy`                               | Apply pending migrations (used by the deploy workflow)  |
+| `pnpm db:baseline`                             | One-time bootstrap for databases created with `db push` |
+| `pnpm db:seed`                                 | Seed the database                                       |
+| `pnpm db:studio`                               | Open Prisma Studio                                      |
+| `pnpm generate-routes`                         | Regenerate the TanStack Router route tree               |
 
 ### Styling
 
@@ -110,6 +112,12 @@ pnpm check # Runs the prettier formatter in check mode, so will not write to any
 ### Deployment
 
 The deployment of both the backend and frontend is automated using the github action found in `./.github/workflows/deploy-to-vm.yaml`
+
+Deploys apply the Prisma migrations in `./packages/db/prisma/migrations` with `prisma migrate deploy` (via `pnpm db:deploy`). Migrations are the single source of truth for the database, so never change the deployed schema with `pnpm db:push`: it does not run the migration SQL (functions, triggers, ...) and skips the migration history, which leaves the deploy unable to apply those migrations later.
+
+A database that was created with `pnpm db:push` before migrations were adopted has no `_prisma_migrations` table. Run `pnpm db:baseline` once against it, then `pnpm db:deploy`; after that the deploy workflow keeps it up to date.
+
+If a migration fails against an existing database, `prisma migrate deploy` refuses to continue until the failed migration is resolved (`prisma migrate resolve`). Inspect `_prisma_migrations` and fix the cause before re-running the deploy.
 
 ## Timeline
 

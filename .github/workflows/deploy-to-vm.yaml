@@ -7,7 +7,10 @@
 #       sudo npm install -g pnpm@10
 #  2. Sudoers entry so the runner can manage the services (sudo visudo):
 #       <runner-user> ALL=(root) NOPASSWD: /usr/bin/install, /usr/bin/tee, /usr/bin/systemctl
-#  3. PostgreSQL on localhost (pnpm db:setup, see README).
+#  3. PostgreSQL on localhost (pnpm db:setup, see README). Deploys apply the
+#     Prisma migrations in packages/db/prisma/migrations. A database that was
+#     created with `prisma db push` must be baselined once with
+#     `pnpm db:baseline` before the first migration-based deploy (see README).
 #  4. Apache reverse proxy so the frontend is reachable at [baseurl]/project2
 #     (the Nitro server already serves the app under /project2):
 #       sudo a2enmod proxy_http
@@ -92,8 +95,8 @@ jobs:
       - name: Install dependencies in deploy root
         run: pnpm -C "$DEPLOY_ROOT" install --frozen-lockfile
 
-      - name: Apply database schema
-        run: pnpm -C "$DEPLOY_ROOT" --filter @t09-project-2/db run db:push
+      - name: Apply database migrations
+        run: pnpm -C "$DEPLOY_ROOT" --filter @t09-project-2/db run db:deploy
 
       - name: Install and restart services
         run: |

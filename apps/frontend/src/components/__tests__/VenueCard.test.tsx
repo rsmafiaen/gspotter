@@ -57,7 +57,7 @@ describe('venueToSearchResult', () => {
 })
 
 describe('VenueCard', () => {
-  it('links to the venue and shows its city as the kicker', async () => {
+  it('links to the venue and shows its name', async () => {
     const { user, router } = renderWithProviders(
       <VenueCard current={makeVenue()} />,
     )
@@ -68,7 +68,6 @@ describe('VenueCard', () => {
     expect(
       screen.getByRole('heading', { name: 'Studentersamfundet' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Trondheim')).toBeInTheDocument()
 
     await user.click(link)
 

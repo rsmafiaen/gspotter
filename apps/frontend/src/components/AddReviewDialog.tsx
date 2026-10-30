@@ -166,12 +166,12 @@ export default function AddReviewDialog({
                 <span className="mr-2 w-24 shrink-0 text-right text-xs font-bold whitespace-nowrap text-(--sea-ink-soft)">
                   Select a rating:
                 </span>
-                <div className="flex items-center -space-x-4">
+                <div className="flex items-center">
                   {RATING_VALUES.map((value) => (
                     <label
                       key={value}
                       onMouseEnter={() => setHoveredRating(value)}
-                      className="cursor-pointer rounded-md p-0.5"
+                      className="flex w-6.75 shrink-0 cursor-pointer items-center justify-center"
                     >
                       <input
                         type="radio"
@@ -186,7 +186,7 @@ export default function AddReviewDialog({
                         alt=""
                         aria-hidden="true"
                         draggable={false}
-                        className={`h-5 w-auto rounded-sm select-none transition-opacity peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-(--lagoon-deep) ${
+                        className={`pointer-events-none block h-5 w-auto max-w-none shrink-0 select-none transition-opacity peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-(--lagoon-deep) ${
                           value <= visibleRating ? 'opacity-100' : 'opacity-30'
                         }`}
                       />

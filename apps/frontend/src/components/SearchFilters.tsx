@@ -71,9 +71,6 @@ export default function SearchFilters({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="mt-1 text-lg font-extrabold">Filter pubs</h2>
-          <p className="mt-0.5 text-xs text-(--sea-ink-soft)">
-            Applies to the map, nearby pubs and search results.
-          </p>
         </div>
         <button
           type="button"

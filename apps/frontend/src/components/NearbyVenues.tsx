@@ -28,7 +28,7 @@ function VenueRow({ venue }: { venue: SearchResult }) {
             title={`Average rating ${venue.averageRating.toFixed(1)} out of 5 from ${
               venue.reviewCount ?? 0
             } ${(venue.reviewCount ?? 0) === 1 ? 'review' : 'reviews'}`}
-            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-(--chip-bg) px-2 py-0.5 text-xs font-bold text-(--sea-ink)"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold text-(--sea-ink)"
           >
             <span aria-hidden="true" className="text-amber-500">
               ★
@@ -73,9 +73,8 @@ export default function NearbyVenues({
     <section className="island-shell rise-in rounded-2xl p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="island-kicker">Nearby pubs</p>
           <h2 className="mt-1 text-xl font-extrabold">
-            Within {maxDistanceKm} km
+            Pubs within {maxDistanceKm} km
           </h2>
         </div>
         <button

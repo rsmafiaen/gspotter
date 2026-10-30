@@ -5,18 +5,11 @@ import {
 import { formatPrice } from '#/lib/format-price'
 import type { SearchResult } from '#/types/search'
 
-export function ViewVenue({
-  venue,
-  kicker = 'Selected pub',
-}: {
-  venue: SearchResult
-  kicker?: string
-}) {
+export function ViewVenue({ venue }: { venue: SearchResult }) {
   return (
     <article className="rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="island-kicker">{kicker}</p>
           <h2 className="mt-1 text-xl font-extrabold">{venue.name}</h2>
         </div>
         {venue.averageRating != null && (
@@ -24,7 +17,7 @@ export function ViewVenue({
             title={`Average rating ${venue.averageRating.toFixed(1)} out of 5 from ${
               venue.reviewCount ?? 0
             } ${(venue.reviewCount ?? 0) === 1 ? 'review' : 'reviews'}`}
-            className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-(--chip-bg) px-2.5 py-1 text-sm font-bold text-(--sea-ink)"
+            className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold text-(--sea-ink)"
           >
             <span>Average rating:</span>
             <span aria-hidden="true" className="text-amber-500">
@@ -47,7 +40,7 @@ export function ViewVenue({
       )}
       <h3 className="mt-4 text-sm font-bold">Opening hours</h3>
       {venue.openingHours && venue.openingHours.length > 0 ? (
-        <ul className="mt-1 striped-list">
+        <ul className="mt-1">
           {venue.openingHours.map((openingHours, index) => (
             <li
               key={index}

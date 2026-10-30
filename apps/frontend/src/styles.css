@@ -555,7 +555,7 @@ a {
 
 /* Cluster marker for overlapping pubs. Kept at 44x44 so it is a comfortable
  * touch target (WCAG 2.2 target size) and never overlaps another marker. */
-.gspotter-cluster {
+.leaflet-marker-icon.gspotter-cluster {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -599,4 +599,8 @@ a {
   to {
     opacity: 1;
   }
+}
+
+button {
+  cursor: pointer;
 }

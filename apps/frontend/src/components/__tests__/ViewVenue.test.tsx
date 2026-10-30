@@ -6,9 +6,8 @@ import { ViewVenue } from '../ViewVenue'
 
 describe('ViewVenue', () => {
   it('renders the venue details, rating, price and opening hours', () => {
-    render(<ViewVenue venue={makeSearchResult()} kicker="Trondheim" />)
+    render(<ViewVenue venue={makeSearchResult()} />)
 
-    expect(screen.getByText('Trondheim')).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Studentersamfundet' }),
     ).toBeInTheDocument()

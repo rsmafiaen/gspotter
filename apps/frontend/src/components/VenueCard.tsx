@@ -37,10 +37,7 @@ export default function VenueCard({ current }: { current: venue }) {
       params={{ cityId: current.city.id, venueId: current.id }}
       className="block rounded-2xl transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--lagoon-deep)"
     >
-      <ViewVenue
-        venue={venueToSearchResult(current)}
-        kicker={current.city.name}
-      />
+      <ViewVenue venue={venueToSearchResult(current)} />
     </Link>
   )
 }

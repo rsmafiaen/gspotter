@@ -62,10 +62,7 @@ function VenuePage() {
       />
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <ViewVenue
-          venue={venueToSearchResult(current)}
-          kicker={current.city.name}
-        />
+        <ViewVenue venue={venueToSearchResult(current)} />
         <section
           aria-label={`Map showing ${current.name}`}
           className="overflow-hidden rounded-2xl bg-(--surface-strong) p-2"

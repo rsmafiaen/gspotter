@@ -6,6 +6,7 @@ import AddReviewDialog from '#/components/AddReviewDialog'
 import { venueToSearchResult } from '#/components/VenueCard'
 import { ViewVenue } from '#/components/ViewVenue'
 import ClientVenueMap from '#/components/ClientVenueMap'
+import { VenuePrices } from '#/components/VenuePrices'
 import { venuesQueryOptions } from '#/graphql/venues'
 
 export const Route = createFileRoute('/$cityId/venues/$venueId')({
@@ -74,6 +75,8 @@ function VenuePage() {
           />
         </section>
       </div>
+
+      <VenuePrices prices={current.pricesSighted ?? []} />
 
       <section className="mt-6 rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
         <div className="flex flex-wrap items-center justify-between gap-3">

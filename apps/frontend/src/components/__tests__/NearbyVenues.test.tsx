@@ -6,6 +6,10 @@ import { makeSearchResult } from '#/test/fixtures'
 import { renderWithProviders } from '#/test/render'
 import NearbyVenues from '../NearbyVenues'
 
+vi.mock('#/lib/use-user-time-zone', () => ({
+  useUserTimeZone: () => 'UTC',
+}))
+
 type NearbyVenuesProps = ComponentProps<typeof NearbyVenues>
 
 function renderNearbyVenues(overrides: Partial<NearbyVenuesProps> = {}) {

@@ -3,9 +3,12 @@ import {
   formatOpeningTime,
 } from '#/lib/format-opening-hours'
 import { formatPrice } from '#/lib/format-price'
+import { useUserTimeZone } from '#/lib/use-user-time-zone'
 import type { SearchResult } from '#/types/search'
 
 export function ViewVenue({ venue }: { venue: SearchResult }) {
+  const timeZone = useUserTimeZone()
+
   return (
     <article className="rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
       <div className="flex items-start justify-between gap-3">
@@ -50,8 +53,8 @@ export function ViewVenue({ venue }: { venue: SearchResult }) {
                 {formatOpeningDays(openingHours.days)}
               </span>
               <span className="text-(--sea-ink-soft)">
-                {formatOpeningTime(openingHours.opening)} -{' '}
-                {formatOpeningTime(openingHours.closing)}
+                {formatOpeningTime(openingHours.opening, timeZone)} -{' '}
+                {formatOpeningTime(openingHours.closing, timeZone)}
               </span>
             </li>
           ))}

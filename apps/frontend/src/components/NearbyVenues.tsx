@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 
 import { formatOpeningHours } from '#/lib/format-opening-hours'
 import { formatPrice } from '#/lib/format-price'
+import { useUserTimeZone } from '#/lib/use-user-time-zone'
 import type { SearchResult } from '#/types/search'
 
 interface NearbyVenuesProps {
@@ -18,7 +19,13 @@ interface NearbyVenuesProps {
 const rowClassName =
   'block w-full px-1 py-3 text-left text-sm text-(--sea-ink) transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
 
-function VenueRow({ venue }: { venue: SearchResult }) {
+function VenueRow({
+  venue,
+  timeZone,
+}: {
+  venue: SearchResult
+  timeZone: string
+}) {
   return (
     <>
       <span className="flex items-baseline justify-between gap-3">
@@ -47,7 +54,7 @@ function VenueRow({ venue }: { venue: SearchResult }) {
       )}
       {venue.openingHours && venue.openingHours.length > 0 && (
         <span className="mt-0.5 block text-xs text-(--sea-ink-soft)">
-          {formatOpeningHours(venue.openingHours)}
+          {formatOpeningHours(venue.openingHours, timeZone)}
         </span>
       )}
       {venue.latestPriceSighting && (
@@ -69,6 +76,8 @@ export default function NearbyVenues({
   maxDistanceKm = 10,
   onRefresh,
 }: NearbyVenuesProps) {
+  const timeZone = useUserTimeZone()
+
   return (
     <section className="island-shell rise-in rounded-2xl p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -131,11 +140,11 @@ export default function NearbyVenues({
                   params={{ cityId: venue.cityId, venueId: venue.id }}
                   className={rowClassName}
                 >
-                  <VenueRow venue={venue} />
+                  <VenueRow venue={venue} timeZone={timeZone} />
                 </Link>
               ) : (
                 <div className={rowClassName}>
-                  <VenueRow venue={venue} />
+                  <VenueRow venue={venue} timeZone={timeZone} />
                 </div>
               )}
             </li>

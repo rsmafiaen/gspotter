@@ -38,8 +38,29 @@ function formatRun(run: Day[]): string {
 // consecutive days into ranges and naming whole weekdays/weekends.
 // Examples: MON–FRI → "Weekdays", SAT–SUN → "Weekends",
 // MON–WED → "Monday–Wednesday", MON/WED/FRI → "Monday, Wednesday and Friday".
-export function formatOpeningTime(iso: string): string {
-  return iso.slice(11, 16)
+const timeFormatters = new Map<string, Intl.DateTimeFormat>()
+
+function getTimeFormatter(timeZone: string) {
+  const existing = timeFormatters.get(timeZone)
+
+  if (existing) return existing
+
+  const formatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  })
+  timeFormatters.set(timeZone, formatter)
+
+  return formatter
+}
+
+export function formatOpeningTime(
+  iso: string,
+  timeZone = 'Europe/Oslo',
+): string {
+  return getTimeFormatter(timeZone).format(new Date(iso))
 }
 
 export interface OpeningHoursEntry {
@@ -54,11 +75,14 @@ export interface OpeningHoursNoteEntry {
 }
 
 /** Compact one-line summary, e.g. "Weekdays 14:00–02:00 · Weekends 12:00–03:00". */
-export function formatOpeningHours(entries: OpeningHoursEntry[]): string {
+export function formatOpeningHours(
+  entries: OpeningHoursEntry[],
+  timeZone = 'Europe/Oslo',
+): string {
   return entries
     .map(
       (entry) =>
-        `${formatOpeningDays(entry.days)} ${formatOpeningTime(entry.opening)}–${formatOpeningTime(entry.closing)}`,
+        `${formatOpeningDays(entry.days)} ${formatOpeningTime(entry.opening, timeZone)}–${formatOpeningTime(entry.closing, timeZone)}`,
     )
     .join(' · ')
 }

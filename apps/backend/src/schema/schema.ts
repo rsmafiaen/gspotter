@@ -4,7 +4,6 @@ import type {
   OpeningHoursNote,
   PriceSighting,
 } from '@t09-project-2/db'
-import type { OpeningHours, PriceSighting } from '@t09-project-2/db'
 import { GraphQLError } from 'graphql'
 
 import { builder } from '../builder.js'

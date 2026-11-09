@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { makeOpeningHours, makeSearchResult } from '#/test/fixtures'
 import { ViewVenue } from '../ViewVenue'
+
+vi.mock('#/lib/use-user-time-zone', () => ({
+  useUserTimeZone: () => 'UTC',
+}))
 
 describe('ViewVenue', () => {
   it('renders the venue details, rating, price and opening hours', () => {

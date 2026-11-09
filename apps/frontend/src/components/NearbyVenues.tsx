@@ -131,25 +131,46 @@ export default function NearbyVenues({
         )}
 
       {hasLocation && venues.length > 0 && (
-        <ul className="mt-3 striped-list venue-list">
-          {venues.map((venue) => (
-            <li key={venue.id}>
-              {venue.cityId ? (
+        <>
+          {venues[0].cityId && venues[0].cityName && (
+            <div className="flex flex-row flex-wrap items-start justify-between gap-3">
+              <h2 className="mt-1 text-lg">
                 <Link
-                  to="/$cityId/venues/$venueId"
-                  params={{ cityId: venue.cityId, venueId: venue.id }}
-                  className={rowClassName}
+                  to="/$cityId/venues"
+                  params={{ cityId: venues[0].cityId }}
+                  className="inline-block rounded-full p-3 outline-2 outline-(--harp-gold) bg-(--chip-bg) transition duration-200 hover:-translate-y-0.5 hover:outline-(--cream-head) focus-visible:outline-(--lagoon-deep)"
+                  style={{ textBox: 'trim-both ex alphabetic' }}
                 >
-                  <VenueRow venue={venue} timeZone={timeZone} />
+                  Show all venues in {venues[0].cityName}
                 </Link>
-              ) : (
-                <div className={rowClassName}>
-                  <VenueRow venue={venue} timeZone={timeZone} />
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+              </h2>
+              <h3 className="mt-1 text-base">
+                Not in {venues[0].cityName}? Search for your city in the search
+                bar above!
+              </h3>
+            </div>
+          )}
+
+          <ul className="mt-3 striped-list venue-list">
+            {venues.map((venue) => (
+              <li key={venue.id}>
+                {venue.cityId ? (
+                  <Link
+                    to="/$cityId/venues/$venueId"
+                    params={{ cityId: venue.cityId, venueId: venue.id }}
+                    className={rowClassName}
+                  >
+                    <VenueRow venue={venue} timeZone={timeZone} />
+                  </Link>
+                ) : (
+                  <div className={rowClassName}>
+                    <VenueRow venue={venue} timeZone={timeZone} />
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   )

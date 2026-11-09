@@ -37,6 +37,7 @@ export function makeSearchResult(
   return {
     id: 'venue-1',
     cityId: 'trondheim',
+    cityName: 'Trondheim',
     type: 'venue',
     name: 'Studentersamfundet',
     lat: 63.4228,

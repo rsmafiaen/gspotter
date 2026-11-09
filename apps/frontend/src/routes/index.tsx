@@ -59,6 +59,7 @@ const NEARBY_QUERY = `
       lon
       city {
         id
+        name
       }
       openingHours {
         days
@@ -110,6 +111,7 @@ function toSearchResult(venue: NearbyVenue): SearchResult {
   return {
     id: venue.id,
     cityId: venue.city.id,
+    cityName: venue.city.name,
     type: 'venue',
     name: venue.name,
     lat: venue.lat,

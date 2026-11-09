@@ -15,6 +15,7 @@ export function venueToSearchResult(current: venue): SearchResult {
   return {
     id: current.id,
     cityId: current.city.id,
+    cityName: current.city.name,
     type: 'venue',
     name: current.name,
     lat: current.lat,

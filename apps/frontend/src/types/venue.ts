@@ -53,7 +53,7 @@ export interface NearbyVenue {
   address: string
   lat: number
   lon: number
-  city: { id: string }
+  city: { id: string; name: string }
   openingHours: VenueOpeningHours[]
   openingHoursNotes: VenueOpeningHoursNote[]
   pricesSighted: VenuePriceSighting[]

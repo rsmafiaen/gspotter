@@ -33,6 +33,7 @@ export interface SearchPriceSighting {
 export interface SearchResult {
   id: string
   cityId: string | null
+  cityName: string | null
   type: 'venue' | 'city'
   name: string
   lat: number

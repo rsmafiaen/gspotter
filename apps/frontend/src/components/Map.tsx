@@ -5,7 +5,6 @@ import {
   CircleMarker,
   MapContainer,
   Marker,
-  TileLayer,
   Tooltip,
   useMap,
 } from 'react-leaflet'
@@ -19,15 +18,13 @@ import harpIconUrl from '#/assets/harp.svg?url'
 import harpShadowUrl from '#/assets/harp_shadow.svg?url'
 import { MOCK_LOCATION_NAME } from '../lib/location'
 import type { Coordinates } from '../lib/location'
+import { MAP_STYLE_URLS } from '../lib/map-styles'
+import { useThemeMode } from '../lib/use-theme-mode'
 import type { SearchResult } from '../types/search'
+import { VectorTileLayer } from './VectorTileLayer'
 
 const DEFAULT_CENTER: [number, number] = [63.4305, 10.3951]
 const DEFAULT_ZOOM = 15
-
-// Using the single `tile` host (instead of the a/b/c subdomains) means the
-// browser only needs one connection, and preconnecting to it in the document
-// head pays off for every tile request.
-const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 
 function FlyToResult({ coordinates }: { coordinates: number[] | undefined }) {
   const map = useMap()
@@ -83,6 +80,7 @@ export default function Map({
   isMockLocation = false,
 }: MapProps) {
   const navigate = useNavigate()
+  const themeMode = useThemeMode()
   // Start at the user's position when we already know it. Otherwise Leaflet
   // first downloads tiles for the default view and immediately replaces them
   // after flying to the user, wasting both time and bandwidth.
@@ -105,13 +103,11 @@ export default function Map({
       <MapContainer
         center={initialCenter}
         zoom={initialZoom}
+        maxZoom={19}
         scrollWheelZoom={true}
         className="h-100 w-full rounded-2xl"
       >
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url={TILE_URL}
-        />
+        <VectorTileLayer styleUrl={MAP_STYLE_URLS[themeMode]} />
         <FlyToResult coordinates={flyTo} />
         <MarkerClusterGroup
           chunkedLoading

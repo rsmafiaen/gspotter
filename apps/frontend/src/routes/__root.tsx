@@ -107,7 +107,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        <link rel="preconnect" href="https://tile.openstreetmap.org" />
+        <link rel="preconnect" href="https://tiles.openfreemap.org" />
         <HeadContent />
       </head>
       <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(211,173,87,0.32)]">

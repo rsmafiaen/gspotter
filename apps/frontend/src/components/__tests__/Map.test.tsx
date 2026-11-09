@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
 
+import { MAP_STYLE_URLS } from '#/lib/map-styles'
 import { makeSearchResult } from '#/test/fixtures'
 import Map from '../Map'
 import VenueMap from '../VenueMap'
@@ -36,9 +37,6 @@ vi.mock('react-leaflet', () => ({
     <div data-testid="map" data-center={center.join(',')} data-zoom={zoom}>
       {children}
     </div>
-  ),
-  TileLayer: ({ url }: { url: string }) => (
-    <div data-testid="tile-layer" data-url={url} />
   ),
   Marker: ({ children, position, title }: MarkerProps) => (
     <div
@@ -75,6 +73,16 @@ vi.mock('react-leaflet-cluster', () => ({
   ),
 }))
 
+vi.mock('../VectorTileLayer', () => ({
+  VectorTileLayer: ({ styleUrl }: { styleUrl: string }) => (
+    <div data-testid="vector-tile-layer" data-style={styleUrl} />
+  ),
+}))
+
+vi.mock('#/lib/use-theme-mode', () => ({
+  useThemeMode: () => 'light',
+}))
+
 describe('Map', () => {
   it('renders a map, tile layer and markers for nearby venues', () => {
     const venue = makeSearchResult()
@@ -86,9 +94,9 @@ describe('Map', () => {
       '63.4305,10.3951',
     )
     expect(screen.getByTestId('map')).toHaveAttribute('data-zoom', '15')
-    expect(screen.getByTestId('tile-layer')).toHaveAttribute(
-      'data-url',
-      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    expect(screen.getByTestId('vector-tile-layer')).toHaveAttribute(
+      'data-style',
+      MAP_STYLE_URLS.light,
     )
 
     const marker = screen.getByTestId('marker')

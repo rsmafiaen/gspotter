@@ -11,6 +11,11 @@ export interface VenueOpeningHours {
   closing: string
 }
 
+export interface VenueOpeningHoursNote {
+  days: string[]
+  note: string
+}
+
 export interface VenuePriceSighting {
   price: number
   size: string
@@ -37,6 +42,7 @@ export interface venue {
   lon: number
   city: VenueCity
   openingHours: VenueOpeningHours[]
+  openingHoursNotes: VenueOpeningHoursNote[]
   pricesSighted?: VenuePriceSighting[]
   reviews: VenueReview[]
 }
@@ -49,6 +55,7 @@ export interface NearbyVenue {
   lon: number
   city: { id: string }
   openingHours: VenueOpeningHours[]
+  openingHoursNotes: VenueOpeningHoursNote[]
   pricesSighted: VenuePriceSighting[]
   reviews: { rating: number }[]
 }

@@ -21,6 +21,7 @@ export function venueToSearchResult(current: venue): SearchResult {
     lon: current.lon,
     address: current.address,
     openingHours: current.openingHours,
+    openingHoursNotes: current.openingHoursNotes,
     latestPriceSighting:
       current.pricesSighted
         ?.filter((sighting) => sighting.Limitations.length === 0)

@@ -73,6 +73,26 @@ describe('ViewVenue', () => {
     expect(screen.getByText('No opening hours listed.')).toBeInTheDocument()
   })
 
+  it('renders an opening-hours note formatted by day', () => {
+    render(
+      <ViewVenue
+        venue={makeSearchResult({
+          openingHoursNotes: [
+            {
+              days: ['SUN'],
+              note: 'Open during select sports broadcasts.',
+            },
+          ],
+        })}
+      />,
+    )
+
+    expect(screen.getByText('Sunday')).toBeInTheDocument()
+    expect(
+      screen.getByText('Open during select sports broadcasts.'),
+    ).toBeInTheDocument()
+  })
+
   it('formats a price sighting without a millilitre size', () => {
     render(
       <ViewVenue

@@ -15,6 +15,11 @@ export interface SearchOpeningHours {
   closing: string
 }
 
+export interface SearchOpeningHoursNote {
+  days: string[]
+  note: string
+}
+
 export interface SearchPriceSighting {
   price: number
   size: string
@@ -35,6 +40,7 @@ export interface SearchResult {
   distanceKm?: number | null
   address: string | null
   openingHours: SearchOpeningHours[] | null
+  openingHoursNotes?: SearchOpeningHoursNote[] | null
   latestPriceSighting: SearchPriceSighting | null
   averageRating?: number | null
   reviewCount?: number

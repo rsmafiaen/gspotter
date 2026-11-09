@@ -48,6 +48,10 @@ const SEARCH_QUERY = `
         opening
         closing
       }
+      openingHoursNotes {
+        days
+        note
+      }
       latestPriceSighting {
         price
         size

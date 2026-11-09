@@ -48,6 +48,11 @@ export interface OpeningHoursEntry {
   closing: string
 }
 
+export interface OpeningHoursNoteEntry {
+  days: string[]
+  note: string
+}
+
 /** Compact one-line summary, e.g. "Weekdays 14:00–02:00 · Weekends 12:00–03:00". */
 export function formatOpeningHours(entries: OpeningHoursEntry[]): string {
   return entries

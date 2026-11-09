@@ -49,13 +49,14 @@ model Venue {
   lat     Float
   lon     Float
 
-  openingHours OpeningHours[]
+  openingHours      OpeningHours[]
+  openingHoursNotes OpeningHoursNote[]
 
   cityId String @map("city_id") @db.Uuid
   city   City   @relation(fields: [cityId], references: [id])
 
   pricesSighted PriceSighting[]
-  reviews Review[]
+  reviews       Review[]
 
   @@map("venue")
 }
@@ -70,6 +71,17 @@ model OpeningHours {
   venue   Venue  @relation(fields: [venueId], references: [id])
 
   @@map("opening_hours")
+}
+
+model OpeningHoursNote {
+  id   String @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  days Day[]
+  note String
+
+  venueId String @map("venue_id") @db.Uuid
+  venue   Venue  @relation(fields: [venueId], references: [id])
+
+  @@map("opening_hours_note")
 }
 
 model City {
@@ -100,14 +112,14 @@ model PriceSighting {
 }
 
 model Review {
-  id String @id @default(dbgenerated("uuidv7()")) @db.Uuid
-  username String
-  body String
-  rating Int
-  timeCreated DateTime @map("time_created") @db.Timestamptz() @default(dbgenerated("now()"))
+  id          String   @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  username    String
+  body        String
+  rating      Int
+  timeCreated DateTime @default(dbgenerated("now()")) @map("time_created") @db.Timestamptz()
 
   venueId String @map("venue_id") @db.Uuid
-  venue Venue @relation(fields: [venueId], references: [id])
+  venue   Venue  @relation(fields: [venueId], references: [id])
 
   @@map("review")
 }

@@ -1,4 +1,9 @@
 import { GlassSize, Prisma, prisma } from '@t09-project-2/db'
+import type {
+  OpeningHours,
+  OpeningHoursNote,
+  PriceSighting,
+} from '@t09-project-2/db'
 import type { OpeningHours, PriceSighting } from '@t09-project-2/db'
 import { GraphQLError } from 'graphql'
 
@@ -14,6 +19,7 @@ builder.prismaObject('Venue', {
     lat: t.exposeFloat('lat'),
     lon: t.exposeFloat('lon'),
     openingHours: t.relation('openingHours'),
+    openingHoursNotes: t.relation('openingHoursNotes'),
     city: t.relation('city'),
     pricesSighted: t.relation('pricesSighted'),
     reviews: t.relation('reviews'),
@@ -25,6 +31,13 @@ const openingHoursRef = builder.prismaObject('OpeningHours', {
     days: t.exposeStringList('days'),
     opening: t.expose('opening', { type: 'DateTime' }),
     closing: t.expose('closing', { type: 'DateTime' }),
+  }),
+})
+
+const openingHoursNoteRef = builder.prismaObject('OpeningHoursNote', {
+  fields: (t) => ({
+    days: t.exposeStringList('days'),
+    note: t.exposeString('note'),
   }),
 })
 
@@ -89,6 +102,7 @@ type SearchResultItem = {
   distanceKm: number | null
   address: string | null
   openingHours: OpeningHours[] | null
+  openingHoursNotes: OpeningHoursNote[] | null
   latestPriceSighting: PriceSighting | null
   averageRating: number | null
   reviewCount: number
@@ -108,6 +122,10 @@ const searchResultRef = builder
       address: t.exposeString('address', { nullable: true }),
       openingHours: t.expose('openingHours', {
         type: [openingHoursRef],
+        nullable: { list: true, items: false },
+      }),
+      openingHoursNotes: t.expose('openingHoursNotes', {
+        type: [openingHoursNoteRef],
         nullable: { list: true, items: false },
       }),
       latestPriceSighting: t.expose('latestPriceSighting', {
@@ -555,6 +573,7 @@ builder.queryType({
                 where: { id: { in: rows.map((row) => row.id) } },
                 include: {
                   openingHours: true,
+                  openingHoursNotes: true,
                   pricesSighted: true,
                 },
               })
@@ -585,6 +604,7 @@ builder.queryType({
               distanceKm: row.distance_km,
               address: venue.address,
               openingHours: venue.openingHours,
+              openingHoursNotes: venue.openingHoursNotes,
               latestPriceSighting,
               averageRating: row.average_rating,
               reviewCount: row.review_count,
@@ -604,6 +624,7 @@ builder.queryType({
             distanceKm: null,
             address: null,
             openingHours: null,
+            openingHoursNotes: null,
             latestPriceSighting: null,
             averageRating: null,
             reviewCount: 0,

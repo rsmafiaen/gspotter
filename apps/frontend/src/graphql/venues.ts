@@ -34,6 +34,10 @@ export const GET_VENUE = `
         opening
         closing
       }
+      openingHoursNotes {
+        days
+        note
+      }
       pricesSighted {
         price
         size

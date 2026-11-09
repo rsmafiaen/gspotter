@@ -39,9 +39,9 @@ export function ViewVenue({ venue }: { venue: SearchResult }) {
         </p>
       )}
       <h3 className="mt-4 text-sm font-bold">Opening hours</h3>
-      {venue.openingHours && venue.openingHours.length > 0 ? (
+      {venue.openingHours?.length || venue.openingHoursNotes?.length ? (
         <ul className="mt-1">
-          {venue.openingHours.map((openingHours, index) => (
+          {venue.openingHours?.map((openingHours, index) => (
             <li
               key={index}
               className="flex items-baseline justify-between gap-4 py-2 text-sm"
@@ -52,6 +52,19 @@ export function ViewVenue({ venue }: { venue: SearchResult }) {
               <span className="text-(--sea-ink-soft)">
                 {formatOpeningTime(openingHours.opening)} -{' '}
                 {formatOpeningTime(openingHours.closing)}
+              </span>
+            </li>
+          ))}
+          {venue.openingHoursNotes?.map((openingHoursNote, index) => (
+            <li
+              key={`note-${index}`}
+              className="flex items-baseline justify-between gap-4 py-2 text-sm"
+            >
+              <span className="font-semibold">
+                {formatOpeningDays(openingHoursNote.days)}
+              </span>
+              <span className="text-(--sea-ink-soft)">
+                {openingHoursNote.note}
               </span>
             </li>
           ))}

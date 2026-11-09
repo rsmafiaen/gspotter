@@ -28,7 +28,7 @@ export default function ClientVenueMap(props: VenueMapProps) {
   const ready = mounted && LazyVenueMap != null
 
   return (
-    <div className="relative h-64 w-full">
+    <div className="relative h-full w-full">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl bg-(--surface-strong)"

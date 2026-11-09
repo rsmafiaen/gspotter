@@ -65,6 +65,10 @@ const NEARBY_QUERY = `
         opening
         closing
       }
+      openingHoursNotes {
+        days
+        note
+      }
       pricesSighted {
         price
         size
@@ -112,6 +116,7 @@ function toSearchResult(venue: NearbyVenue): SearchResult {
     lon: venue.lon,
     address: venue.address,
     openingHours: venue.openingHours,
+    openingHoursNotes: venue.openingHoursNotes,
     latestPriceSighting: latestPriceSighting(venue.pricesSighted),
     averageRating: averageRating(venue.reviews),
     reviewCount: venue.reviews.length,

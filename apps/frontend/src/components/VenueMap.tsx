@@ -26,7 +26,7 @@ export default function VenueMap({ lat, lon, name }: VenueMapProps) {
     <MapContainer
       center={[lat, lon]}
       zoom={16}
-      className="h-64 w-full rounded-xl"
+      className="h-full w-full rounded-xl"
       scrollWheelZoom={false}
       dragging={false}
       doubleClickZoom={false}

@@ -1,5 +1,6 @@
 import { GlassSize, Prisma, prisma } from '@t09-project-2/db'
 import type { OpeningHours, PriceSighting } from '@t09-project-2/db'
+import { GraphQLError } from 'graphql'
 
 import { builder } from '../builder.js'
 import { latestPriceSightings } from './price-sightings.js'
@@ -132,10 +133,12 @@ type SearchVenueRow = {
   average_rating: number | null
   review_count: number
   price_sighting_id: string | null
+  total_count?: number
 }
 
 type VenueFilters = {
   term: string | null
+  cityId: string | null
   lat: number | null
   lon: number | null
   maxDistanceKm: number | null
@@ -148,6 +151,29 @@ type VenueFilters = {
 type VenueQueryOptions = {
   orderByDistance?: boolean
   limit?: number | null
+  cursor?: string | null
+  withTotalCount?: boolean
+}
+
+/**
+ * A cursor is the id of the last venue on the previous page. We look up that
+ * venue to recover its sort key, then continue after the `(sort key, id)` pair
+ * in Postgres. This keeps the existing default name ordering intact and gives
+ * venues with equal names a deterministic order.
+ */
+async function findCursorVenue(cursor: string) {
+  const venue = await prisma.venue.findUnique({
+    where: { id: cursor },
+    select: { id: true, name: true, lat: true, lon: true },
+  })
+
+  if (!venue) {
+    throw new GraphQLError('Venue cursor does not exist', {
+      extensions: { code: 'BAD_USER_INPUT' },
+    })
+  }
+
+  return venue
 }
 
 /**
@@ -181,6 +207,10 @@ async function findFilteredVenues(
     conditions.push(
       Prisma.sql`(v.name ILIKE ${contains} OR v.address ILIKE ${contains})`,
     )
+  }
+
+  if (filters.cityId) {
+    conditions.push(Prisma.sql`v.city_id = ${filters.cityId}::uuid`)
   }
 
   if (
@@ -222,15 +252,33 @@ async function findFilteredVenues(
       ? Prisma.sql`WHERE ${Prisma.join(priceConditions, ' AND ')}`
       : Prisma.empty
 
+  const orderByDistance =
+    options.orderByDistance === true &&
+    filters.lat != null &&
+    filters.lon != null
+
   const distanceExpression =
     filters.lat != null && filters.lon != null
       ? Prisma.sql`haversine_distance(${filters.lat}::double precision, ${filters.lon}::double precision, v.lat, v.lon) / 1000`
       : Prisma.sql`NULL::double precision`
 
-  const orderBy =
-    options.orderByDistance && filters.lat != null && filters.lon != null
-      ? Prisma.sql`distance_km ASC, v.name ASC`
-      : Prisma.sql`v.name ASC`
+  if (options.cursor) {
+    const cursorVenue = await findCursorVenue(options.cursor)
+
+    conditions.push(
+      orderByDistance && filters.lat != null && filters.lon != null
+        ? Prisma.sql`(${distanceExpression}, v.name, v.id) > (
+            haversine_distance(${filters.lat}::double precision, ${filters.lon}::double precision, ${cursorVenue.lat}, ${cursorVenue.lon}) / 1000,
+            ${cursorVenue.name},
+            ${cursorVenue.id}::uuid
+          )`
+        : Prisma.sql`(v.name, v.id) > (${cursorVenue.name}, ${cursorVenue.id}::uuid)`,
+    )
+  }
+
+  const orderBy = orderByDistance
+    ? Prisma.sql`distance_km ASC, v.name ASC, v.id ASC`
+    : Prisma.sql`v.name ASC, v.id ASC`
   const limit = options.limit == null ? null : Math.max(0, options.limit)
 
   return prisma.$queryRaw<SearchVenueRow[]>(Prisma.sql`
@@ -268,6 +316,11 @@ async function findFilteredVenues(
       ratings.average_rating,
       COALESCE(ratings.review_count, 0) AS review_count,
       matching_prices.id AS price_sighting_id
+      ${
+        options.withTotalCount
+          ? Prisma.sql`, COUNT(*) OVER ()::integer AS total_count`
+          : Prisma.empty
+      }
     FROM venue v
     LEFT JOIN ratings ON ratings.venue_id = v.id
     LEFT JOIN matching_prices ON matching_prices.venue_id = v.id
@@ -281,16 +334,33 @@ async function findFilteredVenues(
   `)
 }
 
+/** Counts the same filtered set the venue query would return. */
+async function countFilteredVenues(filters: VenueFilters) {
+  const rows = await findFilteredVenues(filters, {
+    limit: 1,
+    withTotalCount: true,
+  })
+
+  return rows.at(0)?.total_count ?? 0
+}
+
 builder.queryType({
   fields: (t) => ({
     venue: t.prismaField({
       type: ['Venue'],
       args: {
+        cityId: t.arg.string({
+          description: 'Only return venues in this city.',
+        }),
         lat: t.arg.float(),
         lon: t.arg.float(),
         limit: t.arg.int({
           description:
             'Return at most this many venues. Omit to return every venue.',
+        }),
+        cursor: t.arg.string({
+          description:
+            'Return venues after this cursor, i.e. the id of the last venue from the previous page. Use the same filters and location as the previous page.',
         }),
         maxDistanceKm: t.arg.float({
           description:
@@ -318,6 +388,7 @@ builder.queryType({
         const rows = await findFilteredVenues(
           {
             term: null,
+            cityId: args.cityId ?? null,
             lat: args.lat ?? null,
             lon: args.lon ?? null,
             maxDistanceKm: args.maxDistanceKm ?? null,
@@ -329,6 +400,7 @@ builder.queryType({
           {
             orderByDistance: args.lat != null && args.lon != null,
             limit: args.limit,
+            cursor: args.cursor,
           },
         )
 
@@ -348,6 +420,49 @@ builder.queryType({
 
         return sorted
       },
+    }),
+    venueCount: t.field({
+      type: 'Int',
+      args: {
+        cityId: t.arg.string({
+          description: 'Only count venues in this city.',
+        }),
+        lat: t.arg.float(),
+        lon: t.arg.float(),
+        maxDistanceKm: t.arg.float({
+          description:
+            'Only count venues within this distance in kilometres of lat/lon.',
+        }),
+        minPrice: t.arg.float({
+          description:
+            'Only count venues with a latest regular price of at least this amount (NOK).',
+        }),
+        maxPrice: t.arg.float({
+          description:
+            'Only count venues with a latest regular price of at most this amount (NOK).',
+        }),
+        sizes: t.arg({
+          type: [glassSizeRef],
+          description:
+            'Only count venues with a latest regular price for at least one of these serving sizes.',
+        }),
+        minRating: t.arg.float({
+          description:
+            'Only count venues whose average review rating is at least this value.',
+        }),
+      },
+      resolve: (_parent, args) =>
+        countFilteredVenues({
+          term: null,
+          cityId: args.cityId ?? null,
+          lat: args.lat ?? null,
+          lon: args.lon ?? null,
+          maxDistanceKm: args.maxDistanceKm ?? null,
+          minPrice: args.minPrice ?? null,
+          maxPrice: args.maxPrice ?? null,
+          sizes: args.sizes ?? [],
+          minRating: args.minRating ?? null,
+        }),
     }),
     city: t.prismaField({
       type: ['City'],
@@ -411,6 +526,7 @@ builder.queryType({
         const [rows, cities] = await Promise.all([
           findFilteredVenues({
             term: args.term,
+            cityId: null,
             lat: args.lat ?? null,
             lon: args.lon ?? null,
             maxDistanceKm: args.maxDistanceKm ?? null,

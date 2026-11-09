@@ -9,8 +9,10 @@ const server = new ApolloServer({
   schema: builder.toSchema(),
 })
 
+const port = Number(process.env.PORT ?? 3001)
+
 const { url } = await startStandaloneServer(server, {
-  listen: { port: 3001 },
+  listen: { port },
   context: async () => createContext(),
 })
 

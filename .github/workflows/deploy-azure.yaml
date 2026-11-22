@@ -144,12 +144,18 @@ jobs:
           # start it with no overrides so the full job template applies.
           az containerapp job update -n "$MIGRATE_JOB" -g "$RESOURCE_GROUP" \
             --image "$ACR_SERVER/gspotter-backend:$GITHUB_SHA"
-          az containerapp job start -n "$MIGRATE_JOB" -g "$RESOURCE_GROUP"
+          EXECUTION="$(az containerapp job start -n "$MIGRATE_JOB" -g "$RESOURCE_GROUP" \
+            --query name -o tsv)"
+          echo "Migration execution: $EXECUTION"
 
-          # Poll the newest execution until it finishes.
+          # Poll that exact execution until it finishes. (Do not use
+          # `job execution list` + sort_by(&startTime): those fields are nested
+          # under `properties`, so a top-level sort key is null and JMESPath
+          # rejects it.)
           for _ in $(seq 1 60); do
-            STATUS="$(az containerapp job execution list -n "$MIGRATE_JOB" -g "$RESOURCE_GROUP" \
-              --query 'sort_by(@, &startTime)[-1].status' -o tsv)"
+            STATUS="$(az containerapp job execution show -n "$MIGRATE_JOB" -g "$RESOURCE_GROUP" \
+              --job-execution-name "$EXECUTION" \
+              --query properties.status -o tsv 2>/dev/null || true)"
             case "$STATUS" in
               Succeeded) echo "Migrations applied."; exit 0 ;;
               Failed)    echo "Migration job failed. See: az containerapp job execution logs" >&2; exit 1 ;;

@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import Breadcrumbs from '#/components/Breadcrumbs'
-import AddReviewDialog from '#/components/AddReviewDialog'
+import { ReportPriceDialog } from '#/components/prices/ReportPriceDialog'
+import AddReviewDialog from '#/components/reviews/AddReviewDialog'
 import { venueToSearchResult } from '#/components/VenueCard'
 import { ViewVenue } from '#/components/ViewVenue'
 import ClientVenueMap from '#/components/ClientVenueMap'
@@ -76,7 +77,12 @@ function VenuePage() {
         </section>
       </div>
 
-      <VenuePrices prices={current.pricesSighted ?? []} />
+      <VenuePrices
+        prices={current.pricesSighted ?? []}
+        action={
+          <ReportPriceDialog venueId={current.id} venueName={current.name} />
+        }
+      />
 
       <section className="mt-6 rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)">
         <div className="flex flex-wrap items-center justify-between gap-3">

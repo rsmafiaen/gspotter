@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { formatPrice, formatPriceLimitation } from '#/lib/format-price'
 import { useUserTimeZone } from '#/lib/use-user-time-zone'
 import type { VenuePriceSighting } from '#/types/venue'
@@ -17,7 +19,12 @@ function sortPrices(prices: VenuePriceSighting[]) {
   })
 }
 
-export function VenuePrices({ prices }: { prices: VenuePriceSighting[] }) {
+interface VenuePricesProps {
+  prices: VenuePriceSighting[]
+  action?: ReactNode
+}
+
+export function VenuePrices({ prices, action }: VenuePricesProps) {
   const timeZone = useUserTimeZone()
   const sortedPrices = sortPrices(prices)
 
@@ -26,9 +33,12 @@ export function VenuePrices({ prices }: { prices: VenuePriceSighting[] }) {
       aria-labelledby="venue-prices-heading"
       className="mt-6 rounded-2xl bg-(--surface-strong) p-5 text-(--sea-ink)"
     >
-      <h2 id="venue-prices-heading" className="text-xl font-extrabold">
-        Prices
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="venue-prices-heading" className="text-xl font-extrabold">
+          Prices
+        </h2>
+        {action}
+      </div>
 
       {sortedPrices.length === 0 ? (
         <p className="mt-3 text-sm text-(--sea-ink-soft)">

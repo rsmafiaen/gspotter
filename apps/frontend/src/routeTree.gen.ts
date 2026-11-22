@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CityIdVenuesIndexRouteImport } from './routes/$cityId/venues/index'
 import { Route as CityIdVenuesVenueIdRouteImport } from './routes/$cityId/venues/$venueId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CityIdVenuesIndexRoute = CityIdVenuesIndexRouteImport.update({
@@ -31,30 +37,39 @@ const CityIdVenuesVenueIdRoute = CityIdVenuesVenueIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
   '/$cityId/venues/': typeof CityIdVenuesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
   '/$cityId/venues': typeof CityIdVenuesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
   '/$cityId/venues/': typeof CityIdVenuesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$cityId/venues/$venueId' | '/$cityId/venues/'
+  fullPaths: '/' | '/admin' | '/$cityId/venues/$venueId' | '/$cityId/venues/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$cityId/venues/$venueId' | '/$cityId/venues'
-  id: '__root__' | '/' | '/$cityId/venues/$venueId' | '/$cityId/venues/'
+  to: '/' | '/admin' | '/$cityId/venues/$venueId' | '/$cityId/venues'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/$cityId/venues/$venueId'
+    | '/$cityId/venues/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   CityIdVenuesVenueIdRoute: typeof CityIdVenuesVenueIdRoute
   CityIdVenuesIndexRoute: typeof CityIdVenuesIndexRoute
 }
@@ -66,6 +81,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$cityId/venues/': {
@@ -87,6 +109,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   CityIdVenuesVenueIdRoute: CityIdVenuesVenueIdRoute,
   CityIdVenuesIndexRoute: CityIdVenuesIndexRoute,
 }

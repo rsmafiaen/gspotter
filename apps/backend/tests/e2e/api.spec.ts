@@ -1,8 +1,18 @@
 import { expect, test } from '@playwright/test'
 import type { APIRequestContext } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
+import jwt from 'jsonwebtoken'
 
 import { prisma } from '@t09-project-2/db'
+
+const ADMIN_SECRET = 'secret-string'
+
+function adminToken() {
+  return jwt.sign({ sub: 'playwright-admin', role: 'admin' }, ADMIN_SECRET, {
+    algorithm: 'HS256',
+    expiresIn: '1h',
+  })
+}
 
 type GraphQLResponse<T> = {
   data?: T | null
@@ -420,4 +430,250 @@ test('createReview rejects input missing a required field', async ({
   expect(body.errors?.[0]?.message).toContain(
     'Field "MutationCreateReviewInput.body" of required type "String!" was not provided.',
   )
+})
+
+test('createPriceSighting persists a sighting for its venue', async ({
+  request,
+}) => {
+  const { venue } = await query<{ venue: { id: string; name: string }[] }>(
+    request,
+    `
+      query {
+        venue {
+          id
+          name
+        }
+      }
+    `,
+  )
+  const seededVenue = venue.find(({ name }) => name === 'Den Gode Nabo')
+  expect(seededVenue).toBeDefined()
+
+  if (!seededVenue) {
+    throw new Error('Seeded venue "Den Gode Nabo" was not returned')
+  }
+
+  let createdSightingId: string | undefined
+
+  try {
+    const { createPriceSighting } = await query<{
+      createPriceSighting: {
+        id: string
+        price: number
+        size: string
+        sizeMl: number | null
+        Limitations: string[]
+        timeStart: string | null
+        timeEnd: string | null
+        timeSighted: string
+      }
+    }>(
+      request,
+      `
+        mutation CreatePriceSighting(
+          $input: MutationCreatePriceSightingInput!
+        ) {
+          createPriceSighting(input: $input) {
+            id
+            price
+            size
+            sizeMl
+            Limitations
+            timeStart
+            timeEnd
+            timeSighted
+          }
+        }
+      `,
+      {
+        input: {
+          venueId: seededVenue.id,
+          price: 123.5,
+          size: 'PINT',
+          sizeMl: 568,
+          limitation: ['MEMBERSHIP'],
+        },
+      },
+    )
+    createdSightingId = createPriceSighting.id
+
+    expect(createPriceSighting).toMatchObject({
+      id: expect.any(String),
+      price: 123.5,
+      size: 'PINT',
+      sizeMl: 568,
+      Limitations: ['MEMBERSHIP'],
+      timeStart: null,
+      timeEnd: null,
+    })
+    expect(Number.isNaN(Date.parse(createPriceSighting.timeSighted))).toBe(
+      false,
+    )
+
+    const { venue: venuesWithPrices } = await query<{
+      venue: {
+        id: string
+        pricesSighted: {
+          id: string
+          price: number
+          size: string
+          Limitations: string[]
+        }[]
+      }[]
+    }>(
+      request,
+      `
+        query {
+          venue {
+            id
+            pricesSighted {
+              id
+              price
+              size
+              Limitations
+            }
+          }
+        }
+      `,
+    )
+    const persistedSighting = venuesWithPrices
+      .find(({ id }) => id === seededVenue.id)
+      ?.pricesSighted.find(({ id }) => id === createPriceSighting.id)
+
+    expect(persistedSighting).toEqual({
+      id: createPriceSighting.id,
+      price: 123.5,
+      size: 'PINT',
+      Limitations: ['MEMBERSHIP'],
+    })
+  } finally {
+    if (createdSightingId) {
+      await prisma.priceSighting.deleteMany({
+        where: { id: createdSightingId },
+      })
+    }
+  }
+})
+
+test('createPriceSighting requires both times for a TIME limitation', async ({
+  request,
+}) => {
+  const { venue } = await query<{ venue: { id: string; name: string }[] }>(
+    request,
+    `
+      query {
+        venue {
+          id
+          name
+        }
+      }
+    `,
+  )
+  const seededVenue = venue.find(({ name }) => name === 'Den Gode Nabo')
+
+  if (!seededVenue) {
+    throw new Error('Seeded venue "Den Gode Nabo" was not returned')
+  }
+
+  const response = await request.post('/', {
+    data: {
+      query: `
+        mutation {
+          createPriceSighting(
+            input: {
+              venueId: "${seededVenue.id}"
+              price: 89
+              size: PINT
+              limitation: [TIME]
+            }
+          ) {
+            id
+          }
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe(
+    'timeStart and timeEnd are required when limitation includes TIME, and must otherwise be omitted',
+  )
+})
+
+test('createPriceSighting rejects an unknown venue', async ({ request }) => {
+  const unknownVenueId = '00000000-0000-0000-0000-000000000000'
+  const response = await request.post('/', {
+    data: {
+      query: `
+        mutation {
+          createPriceSighting(
+            input: {
+              venueId: "${unknownVenueId}"
+              price: 89
+              size: PINT
+            }
+          ) {
+            id
+          }
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe(`Unknown venue: ${unknownVenueId}`)
+})
+
+test('createVenue rejects an unknown city before geocoding', async ({
+  request,
+}) => {
+  const unknownCityId = '00000000-0000-0000-0000-000000000000'
+  const response = await request.post('/', {
+    headers: { authorization: `Bearer ${adminToken()}` },
+    data: {
+      query: `
+        mutation {
+          createVenue(
+            input: {
+              name: "Playwright venue"
+              address: "Øvre Bakklandet 66, Trondheim"
+              cityId: "${unknownCityId}"
+            }
+          ) {
+            id
+          }
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe(`Unknown city: ${unknownCityId}`)
+})
+
+test('createVenue requires an admin user', async ({ request }) => {
+  const response = await request.post('/', {
+    data: {
+      query: `
+        mutation {
+          createVenue(
+            input: {
+              name: "Playwright venue"
+              address: "Øvre Bakklandet 66, Trondheim"
+              cityId: "00000000-0000-0000-0000-000000000000"
+            }
+          ) {
+            id
+          }
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe('Unauthorized')
 })

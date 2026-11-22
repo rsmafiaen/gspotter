@@ -17,10 +17,14 @@ interface GraphQLResponse<T> {
 export async function graphqlFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
+  token?: string,
 ): Promise<T> {
   const response = await fetch(GRAPHQL_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token !== undefined ? `Bearer ${token}` : 'None',
+    },
     body: JSON.stringify({ query, variables }),
   })
 

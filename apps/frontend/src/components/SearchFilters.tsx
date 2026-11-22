@@ -15,7 +15,7 @@ const SIZE_OPTIONS: { value: GlassSize; label: string }[] = [
   { value: 'PINT', label: 'Pint' },
   { value: 'HALF_LITER', label: 'Half litre' },
   { value: 'QUARTER_LITER', label: 'Quarter litre' },
-  { value: 'BOX', label: 'Box' },
+  { value: 'CAN', label: 'Can' },
   { value: 'OTHER', label: 'Other' },
 ]
 

@@ -7,6 +7,7 @@ import type {
 import { GraphQLError } from 'graphql'
 
 import { builder } from '../builder.js'
+import { geocodeAddress } from '../geocoding.js'
 import { latestPriceSightings } from './price-sightings.js'
 import type { VenueWithPriceSightings } from './price-sightings.js'
 
@@ -62,6 +63,7 @@ builder.prismaObject('Review', {
 
 const priceSightingRef = builder.prismaObject('PriceSighting', {
   select: {
+    id: true,
     size: true,
     sizeMl: true,
     limitation: true,
@@ -70,6 +72,7 @@ const priceSightingRef = builder.prismaObject('PriceSighting', {
     timeSighted: true,
   },
   fields: (t) => ({
+    id: t.exposeString('id'),
     timeSighted: t.expose('timeSighted', { type: 'DateTime' }),
     venue: t.relation('venue'),
     price: t.exposeFloat('price'),
@@ -86,9 +89,32 @@ const glassSizeRef = builder.enumType('GlassSize', {
     PINT: { value: GlassSize.PINT },
     HALF_LITER: { value: GlassSize.HALF_LITER },
     QUARTER_LITER: { value: GlassSize.QUARTER_LITER },
-    BOX: { value: GlassSize.BOX },
+    CAN: { value: GlassSize.CAN },
     OTHER: { value: GlassSize.OTHER },
   },
+})
+
+const dayRef = builder.enumType('Day', {
+  values: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const,
+})
+
+const limitationsRef = builder.enumType('Limitations', {
+  values: ['TIME', 'MEMBERSHIP'] as const,
+})
+
+const openingHoursInputRef = builder.inputType('OpeningHoursInput', {
+  fields: (t) => ({
+    days: t.field({ type: [dayRef], required: true }),
+    opening: t.field({ type: 'DateTime', required: true }),
+    closing: t.field({ type: 'DateTime', required: true }),
+  }),
+})
+
+const openingHoursNoteInputRef = builder.inputType('OpeningHoursNoteInput', {
+  fields: (t) => ({
+    days: t.field({ type: [dayRef], required: true }),
+    note: t.string({ required: true }),
+  }),
 })
 
 type SearchResultItem = {
@@ -651,6 +677,162 @@ builder.mutationType({
             ...args.input,
           },
         }),
+    }),
+    createPriceSighting: t.prismaFieldWithInput({
+      type: 'PriceSighting',
+      input: {
+        venueId: t.input.string({ required: true }),
+        price: t.input.float({
+          required: true,
+          description: 'Price in NOK.',
+        }),
+        size: t.input.field({ type: glassSizeRef, required: true }),
+        sizeMl: t.input.float({
+          description: 'Serving size in millilitres, when known.',
+        }),
+        limitation: t.input.field({
+          type: [limitationsRef],
+          required: false,
+          description: 'Defaults to no limitations.',
+        }),
+        timeStart: t.input.field({
+          type: 'DateTime',
+          description: 'Start of the time-limited offer. Requires TIME.',
+        }),
+        timeEnd: t.input.field({
+          type: 'DateTime',
+          description: 'End of the time-limited offer. Requires TIME.',
+        }),
+      },
+      resolve: async (query, _parent, args) => {
+        const { venueId, price, size, sizeMl, timeStart, timeEnd } = args.input
+        const limitation = args.input.limitation ?? []
+
+        if (!Number.isFinite(price) || price <= 0) {
+          throw new GraphQLError('Price must be greater than 0', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        if (sizeMl != null && (!Number.isFinite(sizeMl) || sizeMl <= 0)) {
+          throw new GraphQLError('sizeMl must be greater than 0', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        const hasTimeLimit = limitation.includes('TIME')
+
+        if (hasTimeLimit !== (timeStart != null && timeEnd != null)) {
+          throw new GraphQLError(
+            'timeStart and timeEnd are required when limitation includes TIME, and must otherwise be omitted',
+            { extensions: { code: 'BAD_USER_INPUT' } },
+          )
+        }
+
+        const venue = await prisma.venue.findUnique({
+          where: { id: venueId },
+          select: { id: true },
+        })
+
+        if (venue === null) {
+          throw new GraphQLError(`Unknown venue: ${venueId}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        return prisma.priceSighting.create({
+          ...query,
+          data: {
+            venue: { connect: { id: venueId } },
+            price,
+            size,
+            sizeMl: sizeMl ?? null,
+            limitation: [...limitation],
+            timeStart: timeStart ?? null,
+            timeEnd: timeEnd ?? null,
+            timeSighted: new Date(),
+          },
+        })
+      },
+    }),
+    createVenue: t.prismaFieldWithInput({
+      type: 'Venue',
+      input: {
+        name: t.input.string({ required: true }),
+        address: t.input.string({
+          required: true,
+          description:
+            'Street address used to look up the venue coordinates with Nominatim.',
+        }),
+        cityId: t.input.string({
+          required: true,
+          description:
+            'ID of an existing city, for example from the city search.',
+        }),
+        openingHours: t.input.field({
+          type: [openingHoursInputRef],
+          required: false,
+        }),
+        openingHoursNotes: t.input.field({
+          type: [openingHoursNoteInputRef],
+          required: false,
+        }),
+      },
+      resolve: async (query, _parent, args, context) => {
+        if (context.user?.role !== 'admin') {
+          throw new GraphQLError('Unauthorized', {
+            extensions: { code: 'UNAUTHORIZED' },
+          })
+        }
+
+        const city = await prisma.city.findUnique({
+          where: { id: args.input.cityId },
+          select: { id: true, name: true },
+        })
+
+        if (city === null) {
+          throw new GraphQLError(`Unknown city: ${args.input.cityId}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        const coordinates = await geocodeAddress(args.input.address, city.name)
+
+        if (coordinates === null) {
+          throw new GraphQLError(
+            `Could not geocode address: ${args.input.address}`,
+            { extensions: { code: 'BAD_USER_INPUT' } },
+          )
+        }
+
+        return prisma.venue.create({
+          ...query,
+          data: {
+            name: args.input.name,
+            address: args.input.address,
+            lat: coordinates.lat,
+            lon: coordinates.lon,
+            city: { connect: { id: city.id } },
+            openingHours: args.input.openingHours
+              ? {
+                  create: args.input.openingHours.map((hours) => ({
+                    days: [...hours.days],
+                    opening: hours.opening,
+                    closing: hours.closing,
+                  })),
+                }
+              : undefined,
+            openingHoursNotes: args.input.openingHoursNotes
+              ? {
+                  create: args.input.openingHoursNotes.map((note) => ({
+                    days: [...note.days],
+                    note: note.note,
+                  })),
+                }
+              : undefined,
+          },
+        })
+      },
     }),
   }),
 })

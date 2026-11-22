@@ -2,10 +2,10 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { graphqlFetch } from '#/graphql/client'
-import { CREATE_REVIEW } from '#/graphql/venues'
+import { CREATE_REVIEW } from '#/graphql/reviews'
 import { makeReview } from '#/test/fixtures'
 import { renderWithProviders } from '#/test/render'
-import AddReviewDialog from '../AddReviewDialog'
+import AddReviewDialog from '../reviews/AddReviewDialog'
 
 vi.mock('#/graphql/client', () => ({
   graphqlFetch: vi.fn(),

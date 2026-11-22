@@ -27,4 +27,5 @@ export const builder = new SchemaBuilder<{
 
 builder.scalarType('DateTime', {
   serialize: (date: Date) => date.toISOString(),
+  parseValue: (value) => new Date(value as string | number | Date),
 })

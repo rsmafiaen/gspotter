@@ -1,5 +1,5 @@
 export type GlassSize =
-  'PINT' | 'HALF_LITER' | 'QUARTER_LITER' | 'BOX' | 'OTHER'
+  'PINT' | 'HALF_LITER' | 'QUARTER_LITER' | 'CAN' | 'OTHER'
 
 export interface SearchFilters {
   maxDistanceKm: number | null

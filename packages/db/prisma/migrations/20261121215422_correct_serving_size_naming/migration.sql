@@ -1,0 +1,1 @@
+ALTER TYPE "glass_size" RENAME VALUE 'BOX' TO 'CAN';

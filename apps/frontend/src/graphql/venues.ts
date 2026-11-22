@@ -3,14 +3,20 @@ import { infiniteQueryOptions } from '@tanstack/react-query'
 import type { venue } from '#/types/venue'
 import { graphqlFetch } from './client'
 
-export const CREATE_REVIEW = `
-  mutation CreateReview($input: MutationCreateReviewInput!) {
-    createReview(input: $input) {
+export const CREATE_VENUE = `
+  mutation CreateVenue($input: MutationCreateVenueInput!) {
+    createVenue(input: $input) {
       id
-      username
-      body
-      rating
-      timeCreated
+      name
+      address
+      lat
+      lon
+      city {
+        id
+        name
+        lat
+        lon
+      }
     }
   }
 `

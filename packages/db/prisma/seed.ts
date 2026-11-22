@@ -282,7 +282,7 @@ async function main() {
               create: [
                 {
                   price: 89,
-                  size: GlassSize.BOX,
+                  size: GlassSize.CAN,
                   limitation: [],
                   timeSighted: priceAt('20:00'),
                 },
@@ -292,7 +292,7 @@ async function main() {
               create: [
                 {
                   username: 'studentpub_fan',
-                  body: "Cheap box beer and a great student atmosphere. Can't beat it.",
+                  body: "Cheap can of the black stuff and a great student atmosphere. Can't beat it.",
                   rating: 5,
                 },
                 {

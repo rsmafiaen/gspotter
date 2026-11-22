@@ -17,7 +17,7 @@ enum GlassSize {
   PINT          @map("PINT")
   HALF_LITER    @map("HALF_LITER")
   QUARTER_LITER @map("QUARTER_LITER")
-  BOX           @map("BOX")
+  CAN           @map("CAN")
   OTHER         @map("OTHER")
 
   @@map("glass_size")
@@ -103,7 +103,7 @@ model PriceSighting {
   timeStart   DateTime?     @map("time_start") @db.Timetz()
   timeEnd     DateTime?     @map("time_end") @db.Timetz()
   sizeMl      Float?        @map("size_ml")
-  timeSighted DateTime      @map("time_sighted") @db.Timestamptz()
+  timeSighted DateTime      @default(now()) @map("time_sighted") @db.Timestamptz()
 
   venueId String @map("venue_id") @db.Uuid
   venue   Venue  @relation(fields: [venueId], references: [id])
@@ -116,7 +116,7 @@ model Review {
   username    String
   body        String
   rating      Int
-  timeCreated DateTime @default(dbgenerated("now()")) @map("time_created") @db.Timestamptz()
+  timeCreated DateTime @default(now()) @map("time_created") @db.Timestamptz()
 
   venueId String @map("venue_id") @db.Uuid
   venue   Venue  @relation(fields: [venueId], references: [id])

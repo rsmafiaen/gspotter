@@ -110,6 +110,10 @@ jobs:
           User=$(id -un)
           Group=$(id -gn)
           WorkingDirectory=$DEPLOY_ROOT/apps/backend
+          # pnpm start does not load .env (the Azure image gets its config
+          # from the Container App environment), so systemd passes it in.
+          EnvironmentFile=$DEPLOY_ROOT/apps/backend/.env
+          Environment=PORT=$BACKEND_PORT
           ExecStart=/usr/bin/env pnpm start
           Restart=always
           RestartSec=2

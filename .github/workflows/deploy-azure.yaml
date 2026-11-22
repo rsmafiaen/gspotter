@@ -19,7 +19,11 @@
 #  - The identity's role grants (Contributor on the resource group,
 #    AcrPush on the registry) are managed by the Terraform config, not
 #    by hand.
-#  - The runner needs the Docker CLI (preinstalled on ubuntu-latest).
+#  - The self-hosted runner needs Docker Engine and the buildx plugin
+#    (`docker buildx version` must work). The workflow checks this before
+#    logging in to the registry. Use Docker 28.x: 29.x has an always-on
+#    BuildKit session bug that can hang builds with "only one connection
+#    allowed".
 #
 # Rollback: `az containerapp revision list` + `az containerapp revision
 # activate` for the previous revision, or re-run this workflow on an old
@@ -54,6 +58,22 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Check Docker prerequisites
+        run: |
+          set -euo pipefail
+          command -v docker > /dev/null || {
+            echo "::error::docker is not installed on the runner"
+            exit 1
+          }
+          docker info > /dev/null || {
+            echo "::error::the Docker daemon is not reachable by the runner user"
+            exit 1
+          }
+          docker buildx version || {
+            echo "::error::the Docker buildx plugin is not installed on the runner"
+            exit 1
+          }
+
       - name: Log in to Azure
         uses: azure/login@v2
         with:
@@ -82,7 +102,17 @@ jobs:
           echo "GRAPHQL_PROXY_TARGET=http://$BACKEND_FQDN" >> "$GITHUB_ENV"
 
       - name: Log in to the container registry
-        run: az acr login --name "$ACR_NAME"
+        run: |
+          set -euo pipefail
+          # `az acr login` shells out to the Docker CLI and fails with
+          # DOCKER_COMMAND_ERROR if it cannot find it. Ask ACR for a token
+          # instead and hand it to Docker directly; buildx still needs the
+          # registry login for `--push`.
+          ACR_TOKEN="$(az acr login --name "$ACR_NAME" --expose-token \
+            --query accessToken -o tsv)"
+          printf '%s' "$ACR_TOKEN" | docker login "$ACR_SERVER" \
+            --username 00000000-0000-0000-0000-000000000000 \
+            --password-stdin
 
       - name: Build and push backend image
         run: |
@@ -140,3 +170,12 @@ jobs:
         run: |
           az containerapp update -n "$FRONTEND_APP" -g "$RESOURCE_GROUP" \
             --image "$ACR_SERVER/gspotter-frontend:$GITHUB_SHA"
+
+      # The runner shares a small disk with the production VM. Images have
+      # already been pushed to ACR, so drop the local copies and keep only a
+      # small build cache for the next deploy.
+      - name: Clean up Docker build cache
+        if: always()
+        run: |
+          docker image prune -af || true
+          docker builder prune -f --max-used-space 1GB || true

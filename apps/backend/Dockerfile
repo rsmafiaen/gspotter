@@ -19,12 +19,14 @@ RUN pnpm install --frozen-lockfile --filter @t09-project-2/backend...
 
 # prisma.config.ts calls env('DATABASE_URL') even during `prisma generate`,
 # so a placeholder value is required for the client generation step.
-# .dockerignore excludes **/src/generated, so the generated client only
-# exists inside this stage.
+# Only the client generator runs here: the Pothos generator's child process
+# hangs under Docker after writing its output. Its generated file is checked
+# in (packages/db/src/generated/pothos-types.ts); regenerate it with
+# `pnpm db:generate` and commit it whenever the Prisma schema changes.
 COPY packages/db packages/db
 COPY apps/backend apps/backend
 RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" \
-    pnpm --filter @t09-project-2/db exec prisma generate
+    pnpm --filter @t09-project-2/db exec prisma generate --generator client
 
 # --- runner: production deps only --------------------------------------------
 # Ships only what the runtime needs: production dependencies, tsx (the start

@@ -11,7 +11,8 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
-**/src/generated/
+**/src/generated/*
+!packages/db/src/generated/pothos-types.ts
 test-results/
 
 # Terraform

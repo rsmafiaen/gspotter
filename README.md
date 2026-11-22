@@ -134,6 +134,8 @@ pnpm test:backend
 
 The deployment of both the backend and frontend is automated using the github action found in `./.github/workflows/deploy-to-vm.yaml`
 
+Both workflows run on the self-hosted runner on the VM. The Azure workflow builds the images with Docker/buildx on that runner (ACR Tasks are not available on the student subscription), so the runner user must be able to access the Docker socket. Docker 28.x is required because 29.x has a BuildKit session bug that can hang builds. The backend systemd unit loads `apps/backend/.env`, because the production `start` script does not read it.
+
 Deploys apply the Prisma migrations in `./packages/db/prisma/migrations` with `prisma migrate deploy` (via `pnpm db:deploy`). Migrations are the single source of truth for the database, so never change the deployed schema with `pnpm db:push`: it does not run the migration SQL (functions, triggers, ...) and skips the migration history, which leaves the deploy unable to apply those migrations later.
 
 A database that was created with `pnpm db:push` before migrations were adopted has no `_prisma_migrations` table. Run `pnpm db:baseline` once against it, then `pnpm db:deploy`; after that the deploy workflow keeps it up to date.

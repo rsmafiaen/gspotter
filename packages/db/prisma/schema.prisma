@@ -3,6 +3,9 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+// The generated file is checked in because the Pothos generator hangs inside
+// the Docker image build. Run `pnpm db:generate` and commit the result after
+// changing this schema.
 generator pothos {
   provider     = "prisma-pothos-types"
   clientOutput = "./prisma"

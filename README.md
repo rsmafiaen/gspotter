@@ -160,7 +160,7 @@ Most recent commit hash at time of hand-in: [`054801b`](https://git.ntnu.no/IT28
 
 Handed in TDB
 
-Most recent commit hash at time of hand-in: [`TDB`](<>) (Will update if there is a more recent version in the future)
+Most recent commit hash at time of hand-in: [`6ed8255`](https://git.ntnu.no/IT2810-H26/T09-Project-2/tree/6ed82554ed10bd7797feb405d391db1cc6071e92)
 
 ### Final hand-in of project 2
 
@@ -177,3 +177,13 @@ The first hand-in was only our initial plan and consited of setting up tanstack 
 ### 2nd hand-in:
 
 We have mostly used AI as a sparring partner in the development of this project, mainly focused on deployment and debugging. For deployment to the VM, GLM 5.3 NVFP4 running on NTNU's LLM servers was used to help generate the script setting up the postgres instance, and to create the deploy pipeline. As can be seen in the `.agents` folder, AI was also used to create more descriptive PR descriptions, but this skill was used with heavy human supervision, and often updated manually afterwards. AI was not used for generating much code, but rather used to help debug issues we were running into, and as a supplement to documentation when it proved lacking/hard to navigate (e.g. when using Pothos to get a DateTime in the GraphQL schema, we could not find any mention of the "expose" function without the expose helper (such as "exposeString" or "exposeFloat"), and thus used AI to figure out how to expose a DateTime object in the schema).
+
+### 3rd hand-in
+
+Essentially the same as handin 2
+
+### 4th hand-in
+
+While outside the scope of the course, we did deploy to Azure. The IaC (terraform code) was initially developed without help from AI, but debugged and refined with AI. The dockerfiles are AI generated, though explicitly guided to use the human-written dockerfiles from monoweb (The student association Online's website [(github.com/dotkom/monoweb)](https://github.com/dotkom/monoweb)) as referance.
+
+cont...

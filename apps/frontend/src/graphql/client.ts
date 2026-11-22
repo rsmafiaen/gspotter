@@ -1,4 +1,13 @@
-const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL ?? 'http://localhost:3001/'
+// In the browser, requests go to the same origin (VITE_GRAPHQL_URL is baked as
+// '/graphql' for the Azure deployment) and the frontend's Nitro server proxies
+// them to the backend. During SSR, fetches go straight to the backend instead:
+// BACKEND_URL is a runtime env var on the container app and falls back to the
+// baked VITE_GRAPHQL_URL for local development and the VM deployment.
+const GRAPHQL_URL = import.meta.env.SSR
+  ? (process.env.BACKEND_URL ??
+    import.meta.env.VITE_GRAPHQL_URL ??
+    'http://localhost:3001/')
+  : (import.meta.env.VITE_GRAPHQL_URL ?? 'http://localhost:3001/')
 
 interface GraphQLResponse<T> {
   data?: T

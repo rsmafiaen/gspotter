@@ -1,0 +1,21 @@
+# Build context: repository root. Keeps the `az acr build` upload small.
+.git
+.github
+.agents
+.vscode
+docs
+node_modules
+**/node_modules
+**/.output
+**/.tanstack
+**/.nitro
+.env
+**/.env
+**/src/generated
+test-results
+**/test-results
+.DS_Store
+*.md
+lighthouse.json
+.cta.json
+todos.json

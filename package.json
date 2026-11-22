@@ -22,7 +22,8 @@
     "db:deploy": "pnpm --filter @t09-project-2/db run db:deploy",
     "db:baseline": "bash scripts/baseline-db.sh",
     "db:seed": "pnpm --filter @t09-project-2/db run db:seed",
-    "db:studio": "pnpm --filter @t09-project-2/db run db:studio"
+    "db:studio": "pnpm --filter @t09-project-2/db run db:studio",
+    "azure:register-providers": "bash scripts/register-azure-providers.sh"
   },
   "devDependencies": {
     "@tanstack/eslint-config": "latest",

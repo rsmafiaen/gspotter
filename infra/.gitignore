@@ -1,0 +1,3 @@
+vars.tfvars
+*.config
+*.tfplan

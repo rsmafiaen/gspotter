@@ -27,6 +27,14 @@ export default function MockLocationNotice() {
         <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
           the repository
         </a>{' '}
+        or the
+        <a
+          href={'https://gspotter.graesberg.com'}
+          target="_blank"
+          rel="norefferer"
+        >
+          public Azure deployment
+        </a>{' '}
         and run the website on localhost.
       </p>
     </aside>

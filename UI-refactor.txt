@@ -1,0 +1,5 @@
+Rework so map is the central aspect of home screen and city screen.
+Have search bar collapsible filters in top right corner
+Have collapsible venue list on left side - default to open on large screens and closed on small screens
+
+Rework infinite scroll so that it fetches venues within a certain distance initially, then a from_dis and to_dis to fetch new venues when zooming out and appending new results to the client list to render all points on map and in the list. When reaching the of the left-side list, show a message and button to zoom out to load more venues

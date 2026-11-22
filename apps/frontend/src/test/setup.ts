@@ -1,7 +1,11 @@
 import '@testing-library/jest-dom/vitest'
 
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+
+// City search debounces by 1 second, so async queries need more than the
+// Testing Library default timeout of 1 second.
+configure({ asyncUtilTimeout: 3000 })
 
 // The in-memory router tries to restore scroll position after navigation.
 window.scrollTo = vi.fn()

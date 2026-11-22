@@ -3,7 +3,7 @@ import type { APIRequestContext } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import jwt from 'jsonwebtoken'
 
-import { prisma } from '@t09-project-2/db'
+import { Day, GlassSize, prisma } from '@t09-project-2/db'
 
 const ADMIN_SECRET = 'secret-string'
 
@@ -25,6 +25,27 @@ async function query<T>(
   variables?: Record<string, unknown>,
 ): Promise<T> {
   const response = await request.post('/', {
+    data: { query: document, variables },
+  })
+  const body: GraphQLResponse<T> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors).toBeUndefined()
+
+  if (body.data == null) {
+    throw new Error('GraphQL response did not contain data')
+  }
+
+  return body.data
+}
+
+async function adminQuery<T>(
+  request: APIRequestContext,
+  document: string,
+  variables?: Record<string, unknown>,
+): Promise<T> {
+  const response = await request.post('/', {
+    headers: { authorization: `Bearer ${adminToken()}` },
     data: { query: document, variables },
   })
   const body: GraphQLResponse<T> = await response.json()
@@ -73,55 +94,133 @@ test('city query returns Trondheim and its map coordinates', async ({
 test('venue query returns its related city, hours, prices, and reviews', async ({
   request,
 }) => {
-  const { venue } = await query<{
-    venue: {
-      name: string
-      city: { name: string }
-      openingHours: { days: string[] }[]
-      pricesSighted: { price: number }[]
-      reviews: { username: string; rating: number }[]
-    }[]
-  }>(
-    request,
-    `
-      query {
-        venue {
-          name
-          city {
+  const suffix = randomUUID()
+  const cityName = `zz test city ${suffix}`
+  const venueName = `zz test venue ${suffix}`
+  // Deliberately far from Trondheim and last alphabetically so this fixture
+  // cannot affect the ordering assertions in the pagination tests running in
+  // parallel.
+  const latitude = -33.8688
+  const longitude = 151.2093
+  let cityId: string | undefined
+  let venueId: string | undefined
+
+  try {
+    const city = await prisma.city.create({
+      data: {
+        name: cityName,
+        centreLat: latitude,
+        centreLon: longitude,
+      },
+    })
+    cityId = city.id
+
+    const venue = await prisma.venue.create({
+      data: {
+        name: venueName,
+        address: 'Testveien 1',
+        lat: latitude,
+        lon: longitude,
+        cityId: city.id,
+        openingHours: {
+          create: [
+            {
+              days: [Day.MON],
+              opening: new Date('2000-01-01T12:00:00Z'),
+              closing: new Date('2000-01-01T20:00:00Z'),
+            },
+          ],
+        },
+        pricesSighted: {
+          create: [
+            {
+              price: 99,
+              size: GlassSize.PINT,
+              limitation: [],
+            },
+          ],
+        },
+        reviews: {
+          create: [
+            {
+              username: 'fixture-user',
+              body: 'Fixture review',
+              rating: 4,
+            },
+          ],
+        },
+      },
+    })
+    venueId = venue.id
+
+    const { venue: venues } = await query<{
+      venue: {
+        name: string
+        city: { name: string }
+        openingHours: { days: string[] }[]
+        pricesSighted: { price: number }[]
+        reviews: { username: string; rating: number }[]
+      }[]
+    }>(
+      request,
+      `
+        query {
+          venue {
             name
-          }
-          openingHours {
-            days
-          }
-          pricesSighted {
-            price
-          }
-          reviews {
-            username
-            rating
+            city {
+              name
+            }
+            openingHours {
+              days
+            }
+            pricesSighted {
+              price
+            }
+            reviews {
+              username
+              rating
+            }
           }
         }
-      }
-    `,
-  )
+      `,
+    )
 
-  const seededVenue = venue.find(({ name }) => name === 'Den Gode Nabo')
-  expect(seededVenue).toBeDefined()
+    const createdVenue = venues.find(({ name }) => name === venueName)
+    expect(createdVenue).toBeDefined()
 
-  if (!seededVenue) {
-    throw new Error('Seeded venue "Den Gode Nabo" was not returned')
+    if (!createdVenue) {
+      throw new Error(`Created venue "${venueName}" was not returned`)
+    }
+
+    expect(createdVenue.city.name).toBe(cityName)
+    expect(createdVenue.openingHours).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          days: expect.arrayContaining(['MON']),
+        }),
+      ]),
+    )
+    expect(createdVenue.pricesSighted).toEqual(
+      expect.arrayContaining([expect.objectContaining({ price: 99 })]),
+    )
+    expect(createdVenue.reviews).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ username: 'fixture-user', rating: 4 }),
+      ]),
+    )
+  } finally {
+    if (venueId) {
+      await prisma.review.deleteMany({ where: { venueId } })
+      await prisma.priceSighting.deleteMany({ where: { venueId } })
+      await prisma.openingHours.deleteMany({ where: { venueId } })
+      await prisma.openingHoursNote.deleteMany({ where: { venueId } })
+      await prisma.venue.deleteMany({ where: { id: venueId } })
+    }
+
+    if (cityId) {
+      await prisma.city.deleteMany({ where: { id: cityId } })
+    }
   }
-
-  expect(seededVenue.city.name).toBe('Trondheim')
-  expect(seededVenue.openingHours).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        days: expect.arrayContaining(['MON']),
-      }),
-    ]),
-  )
-  expect(seededVenue.pricesSighted.length).toBeGreaterThan(0)
-  expect(seededVenue.reviews.length).toBeGreaterThan(0)
 })
 
 test('venue query paginates with a cursor without changing its sort order', async ({
@@ -624,6 +723,116 @@ test('createPriceSighting rejects an unknown venue', async ({ request }) => {
 
   expect(response.status(), JSON.stringify(body)).toBe(200)
   expect(body.errors?.[0]?.message).toBe(`Unknown venue: ${unknownVenueId}`)
+})
+
+test('findOrCreateCity reuses matching places and separates same-named cities', async ({
+  request,
+}) => {
+  const name = `Playwright ${randomUUID()}`
+  const displayName = `${name}, Testland`
+  const variables = {
+    input: { name, displayName, lat: 59.1234, lon: 10.5678 },
+  }
+
+  try {
+    const { findOrCreateCity } = await adminQuery<{
+      findOrCreateCity: {
+        id: string
+        name: string
+        displayName: string | null
+        lat: number
+        lon: number
+      }
+    }>(
+      request,
+      `
+        mutation FindOrCreateCity($input: MutationFindOrCreateCityInput!) {
+          findOrCreateCity(input: $input) {
+            id
+            name
+            displayName
+            lat
+            lon
+          }
+        }
+      `,
+      variables,
+    )
+
+    expect(findOrCreateCity).toMatchObject({
+      id: expect.any(String),
+      name,
+      displayName,
+      lat: 59.1234,
+      lon: 10.5678,
+    })
+
+    const second = await adminQuery<{
+      findOrCreateCity: { id: string }
+    }>(
+      request,
+      `
+        mutation FindOrCreateCity($input: MutationFindOrCreateCityInput!) {
+          findOrCreateCity(input: $input) {
+            id
+          }
+        }
+      `,
+      variables,
+    )
+
+    expect(second.findOrCreateCity.id).toBe(findOrCreateCity.id)
+
+    const otherPlace = await adminQuery<{
+      findOrCreateCity: { id: string; displayName: string | null }
+    }>(
+      request,
+      `
+        mutation FindOrCreateCity($input: MutationFindOrCreateCityInput!) {
+          findOrCreateCity(input: $input) {
+            id
+            displayName
+          }
+        }
+      `,
+      {
+        input: {
+          name,
+          displayName: `${name}, Anotherland`,
+          lat: 40.7128,
+          lon: -74.006,
+        },
+      },
+    )
+
+    expect(otherPlace.findOrCreateCity.id).not.toBe(findOrCreateCity.id)
+    expect(otherPlace.findOrCreateCity.displayName).toBe(`${name}, Anotherland`)
+
+    const cities = await prisma.city.findMany({ where: { name } })
+    expect(cities).toHaveLength(2)
+  } finally {
+    await prisma.city.deleteMany({ where: { name } })
+  }
+})
+
+test('findOrCreateCity requires an admin user', async ({ request }) => {
+  const response = await request.post('/', {
+    data: {
+      query: `
+        mutation {
+          findOrCreateCity(
+            input: { name: "Playwright city", lat: 59.1234, lon: 10.5678 }
+          ) {
+            id
+          }
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe('Unauthorized')
 })
 
 test('createVenue rejects an unknown city before geocoding', async ({

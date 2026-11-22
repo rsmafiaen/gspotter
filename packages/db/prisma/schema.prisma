@@ -88,10 +88,11 @@ model OpeningHoursNote {
 }
 
 model City {
-  id        String @id @default(dbgenerated("uuidv7()")) @db.Uuid
-  name      String
-  centreLon Float  @map("centre_lon")
-  centreLat Float  @map("centre_lat")
+  id          String  @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  name        String
+  displayName String? @map("display_name")
+  centreLon   Float   @map("centre_lon")
+  centreLat   Float   @map("centre_lat")
 
   venues Venue[]
 

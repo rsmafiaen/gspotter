@@ -1,6 +1,11 @@
 export { getDatabaseUrl } from './database-url.js'
 export { prisma } from './client.js'
-export { GlassSize, Prisma, PrismaClient } from './generated/prisma/client.js'
+export {
+  Day,
+  GlassSize,
+  Prisma,
+  PrismaClient,
+} from './generated/prisma/client.js'
 export type {
   OpeningHours,
   OpeningHoursNote,

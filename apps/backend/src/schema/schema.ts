@@ -7,7 +7,8 @@ import type {
 import { GraphQLError } from 'graphql'
 
 import { builder } from '../builder.js'
-import { geocodeAddress } from '../geocoding.js'
+import type { Context } from '../context.js'
+import { geocodeAddress, searchCities } from '../geocoding.js'
 import { latestPriceSightings } from './price-sightings.js'
 import type { VenueWithPriceSightings } from './price-sightings.js'
 
@@ -45,10 +46,48 @@ builder.prismaObject('City', {
   fields: (t) => ({
     id: t.exposeString('id'),
     name: t.exposeString('name'),
+    displayName: t.exposeString('displayName', { nullable: true }),
     lat: t.exposeFloat('centreLat'),
     lon: t.exposeFloat('centreLon'),
   }),
 })
+
+interface CityPlace {
+  name: string
+  displayName: string
+  lat: number
+  lon: number
+}
+
+const cityPlaceRef = builder.objectRef<CityPlace>('CityPlace').implement({
+  fields: (t) => ({
+    name: t.exposeString('name'),
+    displayName: t.exposeString('displayName'),
+    lat: t.exposeFloat('lat'),
+    lon: t.exposeFloat('lon'),
+  }),
+})
+
+function requireAdmin(context: Context) {
+  if (context.user?.role !== 'admin') {
+    throw new GraphQLError('Unauthorized', {
+      extensions: { code: 'UNAUTHORIZED' },
+    })
+  }
+}
+
+function distanceKm(aLat: number, aLon: number, bLat: number, bLon: number) {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180
+  const latDelta = toRadians(bLat - aLat)
+  const lonDelta = toRadians(bLon - aLon)
+  const a =
+    Math.sin(latDelta / 2) ** 2 +
+    Math.cos(toRadians(aLat)) *
+      Math.cos(toRadians(bLat)) *
+      Math.sin(lonDelta / 2) ** 2
+
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
 
 builder.prismaObject('Review', {
   fields: (t) => ({
@@ -521,7 +560,21 @@ builder.queryType({
               mode: 'insensitive',
             },
           },
+          orderBy: { name: 'asc' },
         }),
+    }),
+    cityPlaceSearch: t.field({
+      type: [cityPlaceRef],
+      args: {
+        name: t.arg.string({ required: true }),
+      },
+      description:
+        'Search cities through Nominatim. Used by the admin form to find places outside the local database.',
+      resolve: (_parent, args) => {
+        const term = args.name.trim()
+
+        return term.length < 2 ? [] : searchCities(term)
+      },
     }),
     search: t.field({
       type: [searchResultRef],
@@ -779,15 +832,11 @@ builder.mutationType({
         }),
       },
       resolve: async (query, _parent, args, context) => {
-        if (context.user?.role !== 'admin') {
-          throw new GraphQLError('Unauthorized', {
-            extensions: { code: 'UNAUTHORIZED' },
-          })
-        }
+        requireAdmin(context)
 
         const city = await prisma.city.findUnique({
           where: { id: args.input.cityId },
-          select: { id: true, name: true },
+          select: { id: true, name: true, displayName: true },
         })
 
         if (city === null) {
@@ -796,7 +845,10 @@ builder.mutationType({
           })
         }
 
-        const coordinates = await geocodeAddress(args.input.address, city.name)
+        const coordinates = await geocodeAddress(
+          args.input.address,
+          city.displayName ?? city.name,
+        )
 
         if (coordinates === null) {
           throw new GraphQLError(
@@ -830,6 +882,81 @@ builder.mutationType({
                   })),
                 }
               : undefined,
+          },
+        })
+      },
+    }),
+    findOrCreateCity: t.prismaFieldWithInput({
+      type: 'City',
+      input: {
+        name: t.input.string({ required: true }),
+        displayName: t.input.string({
+          required: false,
+          description:
+            'Full place name from Nominatim, including region and country.',
+        }),
+        lat: t.input.float({
+          required: true,
+          description: 'Latitude of the city centre.',
+        }),
+        lon: t.input.float({
+          required: true,
+          description: 'Longitude of the city centre.',
+        }),
+      },
+      resolve: async (query, _parent, args, context) => {
+        requireAdmin(context)
+
+        const name = args.input.name.trim()
+        const displayName = args.input.displayName?.trim() || null
+        const { lat, lon } = args.input
+
+        if (!name) {
+          throw new GraphQLError('City name is required', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+          throw new GraphQLError('lat must be between -90 and 90', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        if (!Number.isFinite(lon) || lon < -180 || lon > 180) {
+          throw new GraphQLError('lon must be between -180 and 180', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        const candidates = await prisma.city.findMany({
+          where: {
+            name: {
+              equals: name,
+              mode: 'insensitive',
+            },
+          },
+        })
+
+        const normalizedDisplayName = displayName?.toLocaleLowerCase('nb-NO')
+        const existing =
+          candidates.find(
+            (city) =>
+              (normalizedDisplayName !== undefined &&
+                city.displayName?.toLocaleLowerCase('nb-NO') ===
+                  normalizedDisplayName) ||
+              distanceKm(lat, lon, city.centreLat, city.centreLon) <= 25,
+          ) ?? null
+
+        if (existing !== null) return existing
+
+        return prisma.city.create({
+          ...query,
+          data: {
+            name,
+            displayName,
+            centreLat: lat,
+            centreLon: lon,
           },
         })
       },

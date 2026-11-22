@@ -516,6 +516,47 @@ a {
   background: color-mix(in oklab, var(--header-bg) 84%, transparent 16%);
 }
 
+.leaflet-div-icon.gspotter-user-location {
+  border: 0;
+  background: transparent;
+}
+
+/* Leaflet stacks markers by their vertical position, which can put the user
+ * blip above a pub cluster. Keep it underneath so overlapping hovers and
+ * clicks go to the cluster instead of the user-location tooltip. */
+.leaflet-marker-icon.gspotter-user-location {
+  z-index: -1000000 !important;
+}
+
+.gspotter-user-location__dot {
+  display: block;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d3ad57;
+  border-radius: 9999px;
+  background: rgba(230, 199, 127, 0.85);
+  box-shadow: 0 0 0 4px rgba(230, 199, 127, 0.2);
+  transform: scale(var(--gspotter-dot-scale, 1));
+  transform-origin: center;
+}
+
+.map-poster-light {
+  display: block;
+}
+
+.map-poster-dark {
+  display: none;
+}
+
+:root[data-theme='dark'] .map-poster-light {
+  display: none;
+}
+
+:root[data-theme='dark'] .map-poster-dark {
+  display: block;
+}
+
 :root[data-theme='dark'] .leaflet-container {
   background: var(--stout-black);
 }

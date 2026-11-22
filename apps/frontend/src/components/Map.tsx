@@ -1,13 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import {
-  CircleMarker,
-  MapContainer,
-  Marker,
-  Tooltip,
-  useMap,
-} from 'react-leaflet'
+import { MapContainer, Marker, Tooltip, useMap } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -16,24 +10,37 @@ import { useNavigate } from '@tanstack/react-router'
 import { formatPrice } from '../lib/format-price'
 import harpIconUrl from '#/assets/harp.svg?url'
 import harpShadowUrl from '#/assets/harp_shadow.svg?url'
-import { MOCK_LOCATION_NAME } from '../lib/location'
+import { MOCK_LOCATION, MOCK_LOCATION_NAME } from '../lib/location'
 import type { Coordinates } from '../lib/location'
 import { MAP_STYLE_URLS } from '../lib/map-styles'
 import { useThemeMode } from '../lib/use-theme-mode'
 import type { SearchResult } from '../types/search'
 import { VectorTileLayer } from './VectorTileLayer'
 
-const DEFAULT_CENTER: [number, number] = [63.4305, 10.3951]
-const DEFAULT_ZOOM = 15
+// Both SSR posters are centred on the mock location at this zoom, so the live
+// map starts on exactly the same frame and then flies to the user.
+const POSTER_CENTER: [number, number] = [MOCK_LOCATION.lat, MOCK_LOCATION.lon]
+const POSTER_ZOOM = 3
+const USER_ZOOM = 13
 
-function FlyToResult({ coordinates }: { coordinates: number[] | undefined }) {
+function FlyToUser({ location }: { location?: Coordinates | null }) {
   const map = useMap()
+  const lat = location?.lat
+  const lon = location?.lon
 
   useEffect(() => {
-    if (coordinates && coordinates.length == 2) {
-      map.flyTo([coordinates[0], coordinates[1]], 12)
-    }
-  }, [coordinates, map])
+    if (lat == null || lon == null) return
+
+    // Let the poster's first frame paint, then fly in from its view.
+    const timeout = window.setTimeout(() => {
+      map.flyTo([lat, lon], USER_ZOOM, {
+        duration: 1.6,
+        easeLinearity: 0.25,
+      })
+    }, 300)
+
+    return () => window.clearTimeout(timeout)
+  }, [lat, lon, map])
 
   return null
 }
@@ -47,6 +54,97 @@ const harpIcon = new L.Icon({
   shadowAnchor: [25, 25],
   popupAnchor: [0, -25],
 })
+
+const userLocationIcon = L.divIcon({
+  className: 'gspotter-user-location',
+  html: '<span class="gspotter-user-location__dot"></span>',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+})
+
+function UserLocationMarker({
+  location,
+  isMockLocation,
+}: {
+  location: Coordinates
+  isMockLocation: boolean
+}) {
+  const map = useMap()
+  const label = isMockLocation
+    ? `Mock location: ${MOCK_LOCATION_NAME}`
+    : 'Your location'
+
+  useEffect(() => {
+    const container = map.getContainer()
+    const setDotScale = (scale: number) => {
+      container.style.setProperty('--gspotter-dot-scale', String(scale))
+    }
+
+    let frame = 0
+    let animating = false
+
+    // Leaflet animates a marker by scaling its icon element with a CSS
+    // transition. Read that live scale each frame and apply its inverse to the
+    // dot so it keeps the same on-screen size throughout the zoom.
+    const readIconScale = () => {
+      const icon = container.querySelector<HTMLElement>(
+        '.gspotter-user-location',
+      )
+      if (!icon) return 1
+
+      const transform = window.getComputedStyle(icon).transform
+      const values = transform.match(/matrix(?:3d)?\(([^)]+)\)/)?.[1]
+      if (!values) return 1
+
+      const [a = 1, b = 0] = values.split(',').map(Number)
+      const scale = Math.hypot(a, b)
+      return scale > 0 ? scale : 1
+    }
+
+    const tick = () => {
+      setDotScale(1 / readIconScale())
+      frame = window.requestAnimationFrame(tick)
+    }
+
+    const start = () => {
+      if (animating) return
+      animating = true
+      frame = window.requestAnimationFrame(tick)
+    }
+
+    const stop = () => {
+      if (!animating) return
+      animating = false
+      window.cancelAnimationFrame(frame)
+      setDotScale(1)
+    }
+
+    map.on('zoomstart', start)
+    map.on('zoomanim', start)
+    map.on('zoomend', stop)
+
+    return () => {
+      map.off('zoomstart', start)
+      map.off('zoomanim', start)
+      map.off('zoomend', stop)
+      window.cancelAnimationFrame(frame)
+      setDotScale(1)
+    }
+  }, [map])
+
+  return (
+    <Marker
+      position={[location.lat, location.lon]}
+      icon={userLocationIcon}
+      title={label}
+      alt={label}
+    >
+      <Tooltip direction="top" offset={[0, -14]}>
+        {label}
+      </Tooltip>
+    </Marker>
+  )
+}
 
 /**
  * Overlapping pins are merged into a single, larger target. This keeps the map
@@ -69,25 +167,19 @@ function createClusterIcon(cluster: L.MarkerCluster) {
 export interface MapProps {
   nearby?: SearchResult[]
   userLocation?: Coordinates | null
-  flyTo?: number[]
   isMockLocation?: boolean
 }
 
 export default function Map({
   nearby = [],
   userLocation,
-  flyTo,
   isMockLocation = false,
 }: MapProps) {
   const navigate = useNavigate()
   const themeMode = useThemeMode()
-  // Start at the user's position when we already know it. Otherwise Leaflet
-  // first downloads tiles for the default view and immediately replaces them
-  // after flying to the user, wasting both time and bandwidth.
-  const initialCenter: [number, number] = userLocation
-    ? [userLocation.lat, userLocation.lon]
-    : DEFAULT_CENTER
-  const initialZoom = userLocation ? 12 : DEFAULT_ZOOM
+  // Always start on the poster's view, then fly to the user once it is known.
+  const initialCenter: [number, number] = POSTER_CENTER
+  const initialZoom = POSTER_ZOOM
   const markers = nearby.filter(
     (venue, index, all) =>
       all.findIndex(
@@ -108,7 +200,7 @@ export default function Map({
         className="h-100 w-full rounded-2xl"
       >
         <VectorTileLayer styleUrl={MAP_STYLE_URLS[themeMode]} />
-        <FlyToResult coordinates={flyTo} />
+        <FlyToUser location={userLocation} />
         <MarkerClusterGroup
           chunkedLoading
           maxClusterRadius={60}
@@ -146,21 +238,10 @@ export default function Map({
           ))}
         </MarkerClusterGroup>
         {userLocation && (
-          <CircleMarker
-            center={[userLocation.lat, userLocation.lon]}
-            radius={8}
-            pathOptions={{
-              color: '#d3ad57',
-              fillColor: '#e6c77f',
-              fillOpacity: 0.85,
-            }}
-          >
-            <Tooltip direction="top" offset={[0, -12]}>
-              {isMockLocation
-                ? `Mock location: ${MOCK_LOCATION_NAME}`
-                : 'Your location'}
-            </Tooltip>
-          </CircleMarker>
+          <UserLocationMarker
+            location={userLocation}
+            isMockLocation={isMockLocation}
+          />
         )}
       </MapContainer>
     </section>

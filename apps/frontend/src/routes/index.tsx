@@ -204,12 +204,6 @@ function App() {
     [data],
   )
 
-  const flyTo = useMemo(() => {
-    if (coordinates) return [coordinates.lat, coordinates.lon]
-
-    return undefined
-  }, [coordinates])
-
   return (
     <main id="main-content" className="page-wrap px-4 pb-8 pt-14">
       <h1 className="sr-only">Find pubs near you</h1>
@@ -224,7 +218,6 @@ function App() {
         <ClientMap
           nearby={nearbyVenues}
           userLocation={coordinates}
-          flyTo={flyTo}
           isMockLocation={usingMockLocation}
         />
         <SearchFilters

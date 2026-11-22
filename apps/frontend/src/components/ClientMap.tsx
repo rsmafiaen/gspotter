@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import type { ComponentProps } from 'react'
 
-import mapPoster from '#/assets/map-poster.avif'
+import mapPosterDark from '#/assets/map-poster-dark.avif'
+import mapPosterLight from '#/assets/map-poster-light.avif'
+import { MAP_ATTRIBUTION } from '#/lib/map-styles'
 import type MapComponent from './Map'
 
 // Leaflet touches `window` while its module is evaluated, so it may only be
@@ -16,30 +18,37 @@ const LazyMap = mapModulePromise ? lazy(() => mapModulePromise) : null
 type MapProps = ComponentProps<typeof MapComponent>
 
 /**
- * A picture of the map's default view (Trondheim, zoom 15) rendered on the
- * server. The map is the largest thing on the first screen, so pulling that
- * paint out of the JavaScript bundle lets the browser show it immediately
- * instead of waiting for Leaflet and a handful of map tiles.
+ * Pictures of the map's default view (Trondheim, zoom 3) rendered on the
+ * server, one per theme. The map is the largest thing on the first screen, so
+ * pulling that paint out of the JavaScript bundle lets the browser show it
+ * immediately instead of waiting for Leaflet and a handful of map tiles.
  *
- * Regenerate it by screenshotting `#map` at a 1112px viewport width (the widest
- * the container gets) with no location available, then `avifenc -q 40 -s 6`.
+ * Regenerate them by screenshotting `#map` at a 1280px viewport width with the
+ * mock location (968x400), then encode each to AVIF at quality ~35.
  */
 function MapPoster({ ready }: { ready: boolean }) {
   return (
     <>
       <img
-        src={mapPoster}
+        src={mapPosterLight}
         alt=""
         fetchPriority="high"
         decoding="async"
-        className="h-full w-full object-cover"
+        className="map-poster-light h-full w-full object-cover"
+      />
+      <img
+        src={mapPosterDark}
+        alt=""
+        fetchPriority="high"
+        decoding="async"
+        className="map-poster-dark h-full w-full object-cover"
       />
       {/* The live map brings its own attribution control. */}
       <span
         hidden={ready}
         className="absolute right-0 bottom-0 bg-white/80 px-1 text-[10px] leading-4 text-[#333]"
       >
-        © OpenStreetMap contributors
+        {MAP_ATTRIBUTION}
       </span>
     </>
   )

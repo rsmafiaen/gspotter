@@ -1,15 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
 
 import { MAP_STYLE_URLS } from '#/lib/map-styles'
 import { makeSearchResult } from '#/test/fixtures'
 import Map from '../Map'
 import VenueMap from '../VenueMap'
-
-const { flyTo } = vi.hoisted(() => ({
-  flyTo: vi.fn(),
-}))
 
 interface MapContainerProps {
   children: ReactNode
@@ -23,14 +19,11 @@ interface MarkerProps {
   title?: string
 }
 
-interface CircleMarkerProps {
-  children?: ReactNode
-  center: [number, number]
-}
-
 interface PopupProps {
   children?: ReactNode
 }
+
+const { flyTo } = vi.hoisted(() => ({ flyTo: vi.fn() }))
 
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children, center, zoom }: MapContainerProps) => (
@@ -47,23 +40,27 @@ vi.mock('react-leaflet', () => ({
       {children}
     </div>
   ),
-  CircleMarker: ({ children, center }: CircleMarkerProps) => (
-    <div data-testid="circle-marker" data-center={center.join(',')}>
-      {children}
-    </div>
-  ),
   Popup: ({ children }: PopupProps) => (
     <div data-testid="popup">{children}</div>
   ),
   Tooltip: ({ children }: PopupProps) => (
     <div data-testid="tooltip">{children}</div>
   ),
-  useMap: () => ({ flyTo }),
+  useMap: () => ({
+    flyTo,
+    on: vi.fn(),
+    off: vi.fn(),
+    getContainer: () => ({
+      style: { setProperty: vi.fn() },
+      querySelector: () => null,
+    }),
+  }),
 }))
 
 vi.mock('leaflet', () => ({
   default: {
     Icon: class MockIcon {},
+    divIcon: () => ({}),
   },
 }))
 
@@ -84,6 +81,10 @@ vi.mock('#/lib/use-theme-mode', () => ({
 }))
 
 describe('Map', () => {
+  beforeEach(() => {
+    flyTo.mockClear()
+  })
+
   it('renders a map, tile layer and markers for nearby venues', () => {
     const venue = makeSearchResult()
 
@@ -91,9 +92,9 @@ describe('Map', () => {
 
     expect(screen.getByTestId('map')).toHaveAttribute(
       'data-center',
-      '63.4305,10.3951',
+      '63.415458,10.406021',
     )
-    expect(screen.getByTestId('map')).toHaveAttribute('data-zoom', '15')
+    expect(screen.getByTestId('map')).toHaveAttribute('data-zoom', '3')
     expect(screen.getByTestId('vector-tile-layer')).toHaveAttribute(
       'data-style',
       MAP_STYLE_URLS.light,
@@ -126,9 +127,12 @@ describe('Map', () => {
   it('marks the user location and describes a mock location', () => {
     render(<Map userLocation={{ lat: 63.4, lon: 10.4 }} isMockLocation />)
 
-    expect(screen.getByTestId('circle-marker')).toHaveAttribute(
-      'data-center',
-      '63.4,10.4',
+    const marker = screen.getByTestId('marker')
+
+    expect(marker).toHaveAttribute('data-position', '63.4,10.4')
+    expect(marker).toHaveAttribute(
+      'data-title',
+      'Mock location: NTNU Realfagsbygget',
     )
     expect(
       screen.getByText('Mock location: NTNU Realfagsbygget'),
@@ -141,15 +145,14 @@ describe('Map', () => {
     expect(screen.getByText('Your location')).toBeInTheDocument()
   })
 
-  it('flies to new coordinates when they change', async () => {
-    const { rerender } = render(<Map />)
-
-    expect(flyTo).not.toHaveBeenCalled()
-
-    rerender(<Map flyTo={[63.42, 10.39]} />)
+  it('flies from the poster view to the user location', async () => {
+    render(<Map userLocation={{ lat: 63.4, lon: 10.4 }} />)
 
     await waitFor(() => {
-      expect(flyTo).toHaveBeenCalledWith([63.42, 10.39], 12)
+      expect(flyTo).toHaveBeenCalledWith([63.4, 10.4], 13, {
+        duration: 1.6,
+        easeLinearity: 0.25,
+      })
     })
   })
 })

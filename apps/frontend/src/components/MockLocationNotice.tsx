@@ -13,7 +13,6 @@ const REPOSITORY_URL = 'https://git.ntnu.no/IT2810-H26/T09-Project-2'
 export default function MockLocationNotice() {
   return (
     <aside className="demo-alert mock-location-notice rise-in mb-6">
-      <p className="island-kicker">Mock position</p>
       <h2 className="mt-1 text-base font-extrabold">
         We are showing a mock position instead of your real one
       </h2>

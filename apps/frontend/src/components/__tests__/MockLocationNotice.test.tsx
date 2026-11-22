@@ -7,7 +7,6 @@ describe('MockLocationNotice', () => {
   it('explains why a mock location is used and links to the repository', () => {
     render(<MockLocationNotice />)
 
-    expect(screen.getByText('Mock position')).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         name: 'We are showing a mock position instead of your real one',

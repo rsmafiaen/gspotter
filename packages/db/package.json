@@ -13,6 +13,7 @@
     "db:seed": "dotenv -e .env -- prisma db seed",
     "db:studio": "dotenv -e .env -- prisma studio",
     "db:reset": "dotenv -e .env -- prisma migrate reset",
+    "db:blank": "dotenv -e .env -- prisma db execute --file ./prisma/blank.sql",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

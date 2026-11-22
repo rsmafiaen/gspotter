@@ -50,3 +50,7 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Reset test database
+        if: always()
+        run: pnpm --filter @t09-project-2/db run db:blank

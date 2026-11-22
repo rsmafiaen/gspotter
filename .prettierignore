@@ -4,5 +4,7 @@ yarn.lock
 .tanstack
 .agents
 **/src/generated/
+# Prisma SQL helpers (no prettier parser)
+packages/db/prisma/*.sql
 # Generated Lighthouse report kept at the repo root for reference.
 lighthouse.json

@@ -13,7 +13,7 @@ interface NearbyVenuesProps {
   locationError: string | null
   isLoading: boolean
   isError: boolean
-  maxDistanceKm?: number
+  maxDistanceKm?: number | null
   onRefresh: () => void
 }
 
@@ -82,7 +82,9 @@ export default function NearbyVenues({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="mt-1 text-xl font-extrabold">
-            Pubs within {maxDistanceKm} km
+            {maxDistanceKm == null
+              ? 'Pubs near you'
+              : `Pubs within ${maxDistanceKm} km`}
           </h2>
         </div>
         <button
@@ -125,7 +127,9 @@ export default function NearbyVenues({
         venues.length === 0 &&
         !locationError && (
           <p className="mt-3 text-sm text-(--sea-ink-soft)">
-            No pubs within {maxDistanceKm} km of your location.
+            {maxDistanceKm == null
+              ? 'No pubs found.'
+              : `No pubs within ${maxDistanceKm} km of your location.`}
           </p>
         )}
 

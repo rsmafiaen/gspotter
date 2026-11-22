@@ -28,15 +28,15 @@ import type { NearbyVenue, VenuePriceSighting } from '#/types/venue'
 
 export const Route = createFileRoute('/')({ component: App })
 
-const NEARBY_LIMIT = 5
-const NEARBY_MAX_DISTANCE_KM = 10
+const NEARBY_LIST_LIMIT = 5
 
+// The map shows every venue matching the filters. The list below the map is a
+// short nearby preview, so we only slice its data client-side.
 const NEARBY_QUERY = `
   query NearbyVenues(
     $lat: Float!
     $lon: Float!
-    $limit: Int!
-    $maxDistanceKm: Float!
+    $maxDistanceKm: Float
     $minPrice: Float
     $maxPrice: Float
     $sizes: [GlassSize!]
@@ -45,7 +45,6 @@ const NEARBY_QUERY = `
     venue(
       lat: $lat
       lon: $lon
-      limit: $limit
       maxDistanceKm: $maxDistanceKm
       minPrice: $minPrice
       maxPrice: $maxPrice
@@ -178,15 +177,9 @@ function App() {
     void refreshLocation()
   }, [refreshLocation])
 
-  const nearbyMaxDistanceKm =
-    searchFilters.maxDistanceKm ?? NEARBY_MAX_DISTANCE_KM
   const nearbyVariables = useMemo(
-    () => ({
-      ...searchFilterVariables(searchFilters, coordinates),
-      limit: NEARBY_LIMIT,
-      maxDistanceKm: nearbyMaxDistanceKm,
-    }),
-    [searchFilters, coordinates, nearbyMaxDistanceKm],
+    () => searchFilterVariables(searchFilters, coordinates),
+    [searchFilters, coordinates],
   )
 
   const { data, isFetching, isError } = useQuery({
@@ -199,9 +192,13 @@ function App() {
     retry: 1,
   })
 
-  const nearbyVenues = useMemo(
+  const venueResults = useMemo(
     () => (data?.venue ?? []).map(toSearchResult),
     [data],
+  )
+  const nearbyVenues = useMemo(
+    () => venueResults.slice(0, NEARBY_LIST_LIMIT),
+    [venueResults],
   )
 
   return (
@@ -216,7 +213,7 @@ function App() {
           <SearchBox coordinates={coordinates} filters={searchFilters} />
         </div>
         <ClientMap
-          nearby={nearbyVenues}
+          nearby={venueResults}
           userLocation={coordinates}
           isMockLocation={usingMockLocation}
         />
@@ -234,7 +231,7 @@ function App() {
           locationError={locationError}
           isLoading={isFetching}
           isError={isError}
-          maxDistanceKm={nearbyMaxDistanceKm}
+          maxDistanceKm={searchFilters.maxDistanceKm}
           onRefresh={refreshLocation}
         />
       </div>

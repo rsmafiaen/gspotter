@@ -436,9 +436,9 @@ async function main() {
         create: [
           {
             name: 'The Dubliner Folk Pub',
-            address: 'Rådhusgata 13',
-            lat: 59.9114,
-            lon: 10.7405,
+            address: 'Rådhusgata 28',
+            lat: 59.909831,
+            lon: 10.740738,
             openingHours: {
               create: [
                 {
@@ -483,9 +483,9 @@ async function main() {
           },
           {
             name: 'Tilt',
-            address: 'Øvre Slottsgate 6',
-            lat: 59.9139,
-            lon: 10.7432,
+            address: 'Badstugata 6',
+            lat: 59.916211,
+            lon: 10.750614,
             openingHours: {
               create: [
                 {

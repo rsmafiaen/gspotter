@@ -77,6 +77,13 @@ describe('NearbyVenues', () => {
     ).toBeInTheDocument()
   })
 
+  it('does not describe a radius when the distance filter is unlimited', async () => {
+    renderNearbyVenues({ hasLocation: true, maxDistanceKm: null })
+
+    expect(await screen.findByText('Pubs near you')).toBeInTheDocument()
+    expect(await screen.findByText('No pubs found.')).toBeInTheDocument()
+  })
+
   it('renders venue rows and links them to their venue pages', async () => {
     const venues = [
       makeSearchResult(),

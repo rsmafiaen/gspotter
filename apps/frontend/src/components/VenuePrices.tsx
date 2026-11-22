@@ -4,16 +4,34 @@ import { formatPrice, formatPriceLimitation } from '#/lib/format-price'
 import { useUserTimeZone } from '#/lib/use-user-time-zone'
 import type { VenuePriceSighting } from '#/types/venue'
 
+const SIZE_VOLUME_ML: Partial<Record<string, number>> = {
+  PINT: 568,
+  HALF_LITER: 500,
+  QUARTER_LITER: 250,
+  CAN: 440,
+  OTHER: 0,
+}
+
 function isLimited(sighting: VenuePriceSighting) {
   return sighting.Limitations.length > 0
 }
 
+function volumeMl(sighting: VenuePriceSighting) {
+  return sighting.sizeMl ?? SIZE_VOLUME_ML[sighting.size] ?? 0
+}
+
 function sortPrices(prices: VenuePriceSighting[]) {
   return [...prices].sort((a, b) => {
+    const volumeDiff = volumeMl(b) - volumeMl(a)
+    if (volumeDiff !== 0) return volumeDiff
+
     const aLimited = isLimited(a)
     const bLimited = isLimited(b)
 
     if (aLimited !== bLimited) return aLimited ? 1 : -1
+
+    const priceDiff = a.price - b.price
+    if (priceDiff !== 0) return priceDiff
 
     return b.timeSighted.localeCompare(a.timeSighted)
   })

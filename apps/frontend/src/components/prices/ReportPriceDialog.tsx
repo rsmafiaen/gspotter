@@ -48,7 +48,7 @@ export function ReportPriceDialog({
       trigger={
         <Button>
           <span aria-hidden="true" className="text-xs font-bold">
-            kr
+            ＋
           </span>
           Report price
         </Button>

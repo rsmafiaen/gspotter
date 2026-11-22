@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import Breadcrumbs from '#/components/Breadcrumbs'
+import { HarpIcon } from '#/components/HarpIcon'
 import { ReportPriceDialog } from '#/components/prices/ReportPriceDialog'
 import AddReviewDialog from '#/components/reviews/AddReviewDialog'
 import { venueToSearchResult } from '#/components/VenueCard'
@@ -146,6 +147,17 @@ function BackLink() {
   )
 }
 
+// The five harps keep the exact width and height of the old five-star row.
+function Harps({ className = '' }: { className?: string }) {
+  return (
+    <span aria-hidden="true" className={className}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <HarpIcon key={index} />
+      ))}
+    </span>
+  )
+}
+
 function Rating({ rating }: { rating: number }) {
   const percent = Math.max(0, Math.min(100, (rating / 5) * 100))
 
@@ -153,18 +165,16 @@ function Rating({ rating }: { rating: number }) {
     <span className="mt-1 inline-flex items-center gap-2">
       <span
         role="img"
-        aria-label={`${rating} out of 5 stars`}
-        className="relative inline-block whitespace-nowrap text-base leading-none tracking-[0.08em]"
+        aria-label={`${rating} out of 5 harps`}
+        className="relative inline-flex h-[1em] w-[4.875em] items-center whitespace-nowrap text-base leading-none"
       >
-        <span aria-hidden="true" className="text-(--line)">
-          ★★★★★
-        </span>
+        <Harps className="flex h-full w-full items-center justify-between opacity-25 grayscale" />
         <span
           aria-hidden="true"
-          className="absolute inset-y-0 left-0 overflow-hidden whitespace-nowrap text-amber-500"
+          className="absolute inset-y-0 left-0 overflow-hidden"
           style={{ width: `${percent}%` }}
         >
-          ★★★★★
+          <Harps className="flex h-full w-[4.875em] items-center justify-between" />
         </span>
       </span>
       <span className="text-xs font-bold text-(--sea-ink-soft)">

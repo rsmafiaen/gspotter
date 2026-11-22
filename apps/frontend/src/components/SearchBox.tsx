@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useId, useMemo, useState } from 'react'
+import { HarpIcon } from '#/components/HarpIcon'
 import type { FormEvent, KeyboardEvent } from 'react'
 
 import { graphqlFetch } from '../graphql/client'
@@ -332,9 +333,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
                           }`}
                           className="inline-flex shrink-0 items-center gap-1 rounded-full bg-(--chip-bg) px-1.5 py-0.5 text-xs font-bold"
                         >
-                          <span aria-hidden="true" className="text-amber-500">
-                            ★
-                          </span>
+                          <HarpIcon />
                           <span>{result.averageRating.toFixed(1)}</span>
                           <span className="font-normal text-(--sea-ink-soft)">
                             ({result.reviewCount ?? 0})

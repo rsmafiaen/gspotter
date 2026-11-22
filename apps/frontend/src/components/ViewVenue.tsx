@@ -1,3 +1,4 @@
+import { HarpIcon } from '#/components/HarpIcon'
 import {
   formatOpeningDays,
   formatOpeningTime,
@@ -23,9 +24,7 @@ export function ViewVenue({ venue }: { venue: SearchResult }) {
             className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold text-(--sea-ink)"
           >
             <span>Average rating:</span>
-            <span aria-hidden="true" className="text-amber-500">
-              ★
-            </span>
+            <HarpIcon />
             <span>{venue.averageRating.toFixed(1)}</span>
             <span className="sr-only">
               out of 5 from {venue.reviewCount ?? 0}{' '}

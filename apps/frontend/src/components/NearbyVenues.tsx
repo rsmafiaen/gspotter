@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
+import { HarpIcon } from '#/components/HarpIcon'
 import { formatOpeningHours } from '#/lib/format-opening-hours'
 import { formatPrice } from '#/lib/format-price'
 import { useUserTimeZone } from '#/lib/use-user-time-zone'
@@ -37,9 +38,7 @@ function VenueRow({
             } ${(venue.reviewCount ?? 0) === 1 ? 'review' : 'reviews'}`}
             className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold text-(--sea-ink)"
           >
-            <span aria-hidden="true" className="text-amber-500">
-              ★
-            </span>
+            <HarpIcon />
             <span>{venue.averageRating.toFixed(1)}</span>
             <span className="font-normal text-(--sea-ink-soft)">
               ({venue.reviewCount ?? 0})
@@ -133,21 +132,18 @@ export default function NearbyVenues({
       {hasLocation && venues.length > 0 && (
         <>
           {venues[0].cityId && venues[0].cityName && (
-            <div className="flex flex-row flex-wrap items-start justify-between gap-3">
-              <h2 className="mt-1 text-lg">
-                <Link
-                  to="/$cityId/venues"
-                  params={{ cityId: venues[0].cityId }}
-                  className="inline-block rounded-full p-3 outline-2 outline-(--harp-gold) bg-(--chip-bg) transition duration-200 hover:-translate-y-0.5 hover:outline-(--cream-head) focus-visible:outline-(--lagoon-deep)"
-                  style={{ textBox: 'trim-both ex alphabetic' }}
-                >
-                  Show all venues in {venues[0].cityName}
-                </Link>
-              </h2>
-              <h3 className="mt-1 text-base">
+            <div className="flex flex-row flex-wrap items-center gap-3">
+              <Link
+                to="/$cityId/venues"
+                params={{ cityId: venues[0].cityId }}
+                className="mt-1 inline-flex items-center rounded-full bg-(--chip-bg) px-3 py-1.5 font-sans text-sm font-semibold text-(--sea-ink) transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                Show all venues in {venues[0].cityName}
+              </Link>
+              <span className="mt-1 inline-flex items-center font-sans text-sm">
                 Not in {venues[0].cityName}? Search for your city in the search
                 bar above!
-              </h3>
+              </span>
             </div>
           )}
 

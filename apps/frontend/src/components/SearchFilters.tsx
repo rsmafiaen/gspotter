@@ -159,7 +159,7 @@ export default function SearchFilters({
             <option value="">Any rating</option>
             {RATING_OPTIONS.map((rating) => (
               <option key={rating} value={rating}>
-                {rating}+ stars
+                {rating}+ harps
               </option>
             ))}
           </select>

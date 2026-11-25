@@ -6,7 +6,7 @@ import { formatPrice } from '#/lib/format-price'
 import { useUserTimeZone } from '#/lib/use-user-time-zone'
 import type { SearchResult } from '#/types/search'
 
-interface NearbyVenuesProps {
+export interface NearbyVenuesContentProps {
   venues: SearchResult[]
   hasLocation: boolean
   locating: boolean
@@ -14,13 +14,20 @@ interface NearbyVenuesProps {
   isLoading: boolean
   isError: boolean
   maxDistanceKm?: number | null
-  onRefresh: () => void
 }
 
-const rowClassName =
+export const venueRowClassName =
   'block w-full px-1 py-3 text-left text-sm text-(--sea-ink) transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)'
 
-function VenueRow({
+export function nearbyVenuesTitle(
+  maxDistanceKm: number | null | undefined = 10,
+) {
+  return maxDistanceKm == null
+    ? 'Pubs near you'
+    : `Pubs within ${maxDistanceKm} km`
+}
+
+export function NearbyVenueRow({
   venue,
   timeZone,
 }: {
@@ -65,7 +72,8 @@ function VenueRow({
   )
 }
 
-export default function NearbyVenues({
+/** The status messages and venue list, without the surrounding card shell. */
+export function NearbyVenuesContent({
   venues,
   hasLocation,
   locating,
@@ -73,30 +81,11 @@ export default function NearbyVenues({
   isLoading,
   isError,
   maxDistanceKm = 10,
-  onRefresh,
-}: NearbyVenuesProps) {
+}: NearbyVenuesContentProps) {
   const timeZone = useUserTimeZone()
 
   return (
-    <section className="island-shell rise-in rounded-2xl p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="mt-1 text-xl font-extrabold">
-            {maxDistanceKm == null
-              ? 'Pubs near you'
-              : `Pubs within ${maxDistanceKm} km`}
-          </h2>
-        </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={locating}
-          className="rounded-full bg-(--chip-bg) px-3 py-1.5 text-sm font-semibold text-(--sea-ink) transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
-        >
-          {locating ? 'Finding location…' : 'Refresh location'}
-        </button>
-      </div>
-
+    <>
       {locationError && (
         <p className="mt-3 text-sm text-(--sea-ink-soft)">{locationError}</p>
       )}
@@ -136,35 +125,35 @@ export default function NearbyVenues({
       {hasLocation && venues.length > 0 && (
         <>
           {venues[0].cityId && venues[0].cityName && (
-            <div className="flex flex-row flex-wrap items-center gap-3">
+            <div className="mt-3 flex flex-row flex-wrap items-center gap-3">
               <Link
                 to="/$cityId/venues"
                 params={{ cityId: venues[0].cityId }}
-                className="mt-1 inline-flex items-center rounded-full bg-(--chip-bg) px-3 py-1.5 font-sans text-sm font-semibold text-(--sea-ink) transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
+                className="inline-flex items-center rounded-full bg-(--chip-bg) px-3 py-1.5 font-sans text-sm font-semibold text-(--sea-ink) transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0"
               >
                 Show all venues in {venues[0].cityName}
               </Link>
-              <span className="mt-1 inline-flex items-center font-sans text-sm">
+              <span className="inline-flex items-center font-sans text-sm">
                 Not in {venues[0].cityName}? Search for your city in the search
                 bar above!
               </span>
             </div>
           )}
 
-          <ul className="mt-3 striped-list venue-list">
+          <ul className="striped-list venue-list mt-3">
             {venues.map((venue) => (
               <li key={venue.id}>
                 {venue.cityId ? (
                   <Link
                     to="/$cityId/venues/$venueId"
                     params={{ cityId: venue.cityId, venueId: venue.id }}
-                    className={rowClassName}
+                    className={venueRowClassName}
                   >
-                    <VenueRow venue={venue} timeZone={timeZone} />
+                    <NearbyVenueRow venue={venue} timeZone={timeZone} />
                   </Link>
                 ) : (
-                  <div className={rowClassName}>
-                    <VenueRow venue={venue} timeZone={timeZone} />
+                  <div className={venueRowClassName}>
+                    <NearbyVenueRow venue={venue} timeZone={timeZone} />
                   </div>
                 )}
               </li>
@@ -172,6 +161,6 @@ export default function NearbyVenues({
           </ul>
         </>
       )}
-    </section>
+    </>
   )
 }

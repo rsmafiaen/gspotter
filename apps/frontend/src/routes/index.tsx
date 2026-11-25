@@ -1,231 +1,140 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import type { SetStateAction } from 'react'
 
 import ClientMap from '#/components/ClientMap'
 import MockLocationNotice from '#/components/MockLocationNotice'
-import NearbyVenues from '#/components/NearbyVenues'
+import NearbyVenuesSidebar from '#/components/NearbyVenuesSidebar'
 import SearchBox from '#/components/SearchBox'
 import SearchFilters from '#/components/SearchFilters'
-import { graphqlFetch } from '#/graphql/client'
+import SidebarVenuePagination from '#/components/SidebarVenuePagination'
+import { venueToSearchResult } from '#/components/VenueCard'
+import { venuesFromPages } from '#/graphql/venues'
+import { MOCK_LOCATION } from '#/lib/location'
 import {
-  MOCK_LOCATION,
-  describeLocationError,
-  readStoredLocation,
-  requestAndStoreLocation,
-  usesMockLocation,
-} from '#/lib/location'
-import type { Coordinates } from '#/lib/location'
-import {
-  EMPTY_SEARCH_FILTERS,
-  searchFilterVariables,
+  parseSearchQueryParams,
+  searchFiltersFromQueryParams,
+  searchFiltersToQueryParams,
 } from '#/lib/search-filters'
-import type {
-  SearchFilters as SearchFilterValues,
-  SearchResult,
-} from '#/types/search'
-import type { NearbyVenue, VenuePriceSighting } from '#/types/venue'
+import { useDistanceVenues } from '#/lib/use-distance-venues'
+import { useUserLocation } from '#/lib/use-user-location'
+import type { SearchFilters as SearchFilterValues } from '#/types/search'
 
-export const Route = createFileRoute('/')({ component: App })
-
-const NEARBY_LIST_LIMIT = 5
-
-// The map shows every venue matching the filters. The list below the map is a
-// short nearby preview, so we only slice its data client-side.
-const NEARBY_QUERY = `
-  query NearbyVenues(
-    $lat: Float!
-    $lon: Float!
-    $maxDistanceKm: Float
-    $minPrice: Float
-    $maxPrice: Float
-    $sizes: [GlassSize!]
-    $minRating: Float
-  ) {
-    venue(
-      lat: $lat
-      lon: $lon
-      maxDistanceKm: $maxDistanceKm
-      minPrice: $minPrice
-      maxPrice: $maxPrice
-      sizes: $sizes
-      minRating: $minRating
-    ) {
-      id
-      name
-      address
-      lat
-      lon
-      city {
-        id
-        name
-      }
-      openingHours {
-        days
-        opening
-        closing
-      }
-      openingHoursNotes {
-        days
-        note
-      }
-      pricesSighted {
-        price
-        size
-        sizeMl
-        Limitations
-        timeStart
-        timeEnd
-        timeSighted
-      }
-      reviews {
-        rating
-      }
-    }
-  }
-`
-
-function averageRating(reviews: { rating: number }[]) {
-  if (reviews.length === 0) return null
-
-  return (
-    reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
-  )
-}
-
-function latestPriceSighting(sightings: VenuePriceSighting[]) {
-  return sightings.reduce<VenuePriceSighting | null>((latest, sighting) => {
-    if (
-      latest === null ||
-      new Date(sighting.timeSighted) > new Date(latest.timeSighted)
-    ) {
-      return sighting
-    }
-
-    return latest
-  }, null)
-}
-
-function toSearchResult(venue: NearbyVenue): SearchResult {
-  return {
-    id: venue.id,
-    cityId: venue.city.id,
-    cityName: venue.city.name,
-    type: 'venue',
-    name: venue.name,
-    lat: venue.lat,
-    lon: venue.lon,
-    address: venue.address,
-    openingHours: venue.openingHours,
-    openingHoursNotes: venue.openingHoursNotes,
-    latestPriceSighting: latestPriceSighting(venue.pricesSighted),
-    averageRating: averageRating(venue.reviews),
-    reviewCount: venue.reviews.length,
-  }
-}
+export const Route = createFileRoute('/')({
+  // Filters and the search box live in the URL so the view can be shared,
+  // bookmarked, and restored with the browser's back/forward buttons.
+  validateSearch: parseSearchQueryParams,
+  component: App,
+})
 
 function App() {
-  const [coordinates, setCoordinates] = useState<Coordinates | null>(null)
-  const [searchFilters, setSearchFilters] =
-    useState<SearchFilterValues>(EMPTY_SEARCH_FILTERS)
-  const [locating, setLocating] = useState(true)
-  const [locationError, setLocationError] = useState<string | null>(null)
-  const [usingMockLocation, setUsingMockLocation] = useState(false)
-  const initialized = useRef(false)
+  const navigate = Route.useNavigate()
+  // Only re-render the page when a filter actually changes; the search term is
+  // read directly by SearchBox.
+  const searchFilters = Route.useSearch({
+    select: searchFiltersFromQueryParams,
+  })
+  const {
+    coordinates,
+    locating,
+    locationError,
+    usingMockLocation,
+    refreshLocation,
+  } = useUserLocation()
 
-  const refreshLocation = useCallback(async () => {
-    setLocationError(null)
+  const updateSearchFilters = useCallback(
+    (update: SetStateAction<SearchFilterValues>) => {
+      void navigate({
+        search: (previous) => {
+          const current = searchFiltersFromQueryParams(previous)
+          const next = typeof update === 'function' ? update(current) : update
 
-    // Browsers block geolocation outside secure contexts, so on plain HTTP the
-    // only option is a fixed, clearly announced mock position.
-    if (usesMockLocation()) {
-      setUsingMockLocation(true)
-      setCoordinates(MOCK_LOCATION)
-      setLocating(false)
-      return
-    }
-
-    setLocating(true)
-
-    try {
-      setCoordinates(await requestAndStoreLocation())
-    } catch (error) {
-      setLocationError(describeLocationError(error))
-    } finally {
-      setLocating(false)
-    }
-  }, [])
-
-  // Reuse the location from the last 24 hours, otherwise ask the browser once.
-  useEffect(() => {
-    if (initialized.current) return
-    initialized.current = true
-
-    if (usesMockLocation()) {
-      void refreshLocation()
-      return
-    }
-
-    const stored = readStoredLocation()
-
-    if (stored) {
-      setCoordinates(stored)
-      setLocating(false)
-      return
-    }
-
-    void refreshLocation()
-  }, [refreshLocation])
-
-  const nearbyVariables = useMemo(
-    () => searchFilterVariables(searchFilters, coordinates),
-    [searchFilters, coordinates],
+          return { ...previous, ...searchFiltersToQueryParams(next) }
+        },
+        replace: true,
+      })
+    },
+    [navigate],
   )
 
-  const { data, isFetching, isError } = useQuery({
-    queryKey: ['nearbyVenues', nearbyVariables],
-    queryFn: () =>
-      graphqlFetch<{ venue: NearbyVenue[] }>(NEARBY_QUERY, nearbyVariables),
-    enabled: coordinates != null,
-    placeholderData: keepPreviousData,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  const {
+    data,
+    isFetching,
+    isError,
+    hasMorePages,
+    loadMore,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    setRadiusFromMap,
+  } = useDistanceVenues({
+    cityId: null,
+    filters: searchFilters,
+    coordinates,
   })
 
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+
+    if (
+      !sentinel ||
+      !hasMorePages ||
+      typeof IntersectionObserver === 'undefined'
+    ) {
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries.some((entry) => entry.isIntersecting) &&
+          !isFetchingNextPage
+        ) {
+          loadMore()
+        }
+      },
+      { rootMargin: '600px 0px' },
+    )
+
+    observer.observe(sentinel)
+
+    return () => observer.disconnect()
+  }, [hasMorePages, isFetchingNextPage, loadMore])
+
   const venueResults = useMemo(
-    () => (data?.venue ?? []).map(toSearchResult),
+    () => venuesFromPages(data).map(venueToSearchResult),
     [data],
-  )
-  const nearbyVenues = useMemo(
-    () => venueResults.slice(0, NEARBY_LIST_LIMIT),
-    [venueResults],
   )
 
   return (
-    <main id="main-content" className="page-wrap px-4 pb-8 pt-14">
+    <main
+      id="main-content"
+      className="relative h-[calc(100svh-57px)] overflow-hidden sm:h-[calc(100svh-65px)]"
+    >
       <h1 className="sr-only">Find pubs near you</h1>
-      <MockLocationNotice />
-      {/* No `rise-in` here: the map poster inside this section must be painted
-          on the first frame, and an animation that starts at opacity: 0 keeps
-          it from being reported as the LCP element. */}
-      <section className="island-shell relative mb-10 overflow-hidden rounded-4xl px-6 py-10 sm:px-10 sm:py-14">
-        <div className="mb-3 flex justify-end">
-          <SearchBox coordinates={coordinates} filters={searchFilters} />
-        </div>
+
+      {/* The map is the page: every control floats above it. */}
+      <div className="absolute inset-3 overflow-hidden rounded-3xl bg-(--surface-strong) shadow-[0_24px_70px_rgba(0,0,0,0.28)] sm:inset-4">
         <ClientMap
           nearby={venueResults}
           userLocation={coordinates}
           isMockLocation={usingMockLocation}
+          center={coordinates ?? MOCK_LOCATION}
+          zoom={13}
+          onRadiusChange={setRadiusFromMap}
         />
-        <SearchFilters
-          filters={searchFilters}
-          coordinates={coordinates}
-          onChange={setSearchFilters}
-        />
-      </section>
-      <div className="mt-4">
-        <NearbyVenues
-          venues={nearbyVenues}
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-3 bottom-24 z-950 flex justify-center sm:bottom-4">
+        <div className="pointer-events-auto w-full max-w-xl">
+          <MockLocationNotice />
+        </div>
+      </div>
+
+      <div className="pointer-events-none absolute inset-3 flex gap-4 rounded-3xl p-3 sm:inset-4 sm:p-4">
+        <NearbyVenuesSidebar
+          venues={venueResults}
           hasLocation={coordinates != null}
           locating={locating}
           locationError={locationError}
@@ -233,7 +142,25 @@ function App() {
           isError={isError}
           maxDistanceKm={searchFilters.maxDistanceKm}
           onRefresh={refreshLocation}
+          pagination={
+            <SidebarVenuePagination
+              hasMorePages={hasMorePages}
+              isFetchingNextPage={isFetchingNextPage}
+              isFetchNextPageError={isFetchNextPageError}
+              onLoadMore={loadMore}
+              sentinelRef={sentinelRef}
+            />
+          }
         />
+
+        <div className="pointer-events-auto relative z-950 ml-auto flex w-full max-w-136 flex-col gap-2 self-start">
+          <SearchBox coordinates={coordinates} filters={searchFilters} />
+          <SearchFilters
+            filters={searchFilters}
+            coordinates={coordinates}
+            onChange={updateSearchFilters}
+          />
+        </div>
       </div>
     </main>
   )

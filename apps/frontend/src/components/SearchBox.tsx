@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useEffect, useId, useMemo, useState } from 'react'
 import { HarpIcon } from '#/components/HarpIcon'
 import type { FormEvent, KeyboardEvent } from 'react'
@@ -7,6 +7,7 @@ import type { FormEvent, KeyboardEvent } from 'react'
 import { graphqlFetch } from '../graphql/client'
 import { formatPrice } from '../lib/format-price'
 import { searchFilterVariables } from '../lib/search-filters'
+import { useDebounce } from '../lib/use-debounce'
 import type { Coordinates } from '../lib/location'
 import type { SearchFilters, SearchResult } from '../types/search'
 
@@ -104,27 +105,33 @@ interface SearchBoxProps {
   /** The user's position, used to calculate and filter by distance. */
   coordinates?: Coordinates | null
   filters: SearchFilters
+  /** Route whose `q` search parameter stores the search term. */
+  from?: '/' | '/$cityId/venues/'
 }
 
-export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
-  const navigate = useNavigate()
+export function SearchBox({
+  coordinates = null,
+  filters,
+  from = '/',
+}: SearchBoxProps) {
+  const navigate = useNavigate({ from })
+  const searchTerm = useSearch({ from, select: (search) => search.q })
   const inputId = useId()
   const listId = useId()
 
-  const [term, setTerm] = useState('')
-  const [debouncedTerm, setDebouncedTerm] = useState('')
-  const [open, setOpen] = useState(false)
+  const term = searchTerm ?? ''
+  // The URL is the source of truth for the term, but the request should only
+  // run after the user pauses typing.
+  const debouncedTerm = useDebounce(term.trim(), DEBOUNCE_MS)
   const [showAll, setShowAll] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
 
-  // Debounce the term so we do not hit the server on every keystroke.
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedTerm(term.trim())
-    }, DEBOUNCE_MS)
-
-    return () => clearTimeout(timeout)
-  }, [term])
+  function updateTerm(next: string) {
+    void navigate({
+      search: (previous) => ({ ...previous, q: next || undefined }),
+      replace: true,
+    })
+  }
 
   // Collapse the list again whenever the term or filters change (the plan wants
   // the full list only after the user presses Enter).
@@ -164,12 +171,12 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
     activeIndex >= 0 && activeIndex < visibleResults.length ? activeIndex : -1
 
   const waitingForDebounce = term.trim() !== debouncedTerm
-  const showPanel = open && term.trim().length > 0
+  // Keep results visible whenever the bar has text, including after loading a
+  // shared URL, instead of only while the input is focused.
+  const showPanel = term.trim().length > 0
 
   function select(result: SearchResult) {
-    setTerm(result.name)
-    setDebouncedTerm(result.name)
-    setOpen(false)
+    updateTerm(result.name)
     setShowAll(false)
     setActiveIndex(-1)
 
@@ -197,26 +204,23 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
     }
 
     // Enter (or the search button) reveals the full result list.
-    setOpen(true)
     setShowAll(true)
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      setOpen(true)
       setActiveIndex((index) => Math.min(index + 1, visibleResults.length - 1))
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
       setActiveIndex((index) => Math.max(index - 1, -1))
     } else if (event.key === 'Escape') {
-      setOpen(false)
       setActiveIndex(-1)
     }
   }
 
   return (
-    <div className="relative z-1000 w-full max-w-88">
+    <div className="relative z-1000 w-full">
       <form
         role="search"
         onSubmit={handleSubmit}
@@ -238,11 +242,8 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
             type="search"
             value={term}
             onChange={(event) => {
-              setTerm(event.target.value)
-              setOpen(true)
+              updateTerm(event.target.value)
             }}
-            onFocus={() => setOpen(true)}
-            onBlur={() => setOpen(false)}
             onKeyDown={handleKeyDown}
             placeholder="Search for a pub or city…"
             autoComplete="off"
@@ -260,9 +261,7 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
               type="button"
               aria-label="Clear search"
               onClick={() => {
-                setTerm('')
-                setDebouncedTerm('')
-                setOpen(false)
+                updateTerm('')
                 setShowAll(false)
                 setActiveIndex(-1)
               }}
@@ -341,20 +340,21 @@ export function SearchBox({ coordinates = null, filters }: SearchBoxProps) {
                         </span>
                       )}
                     </span>
-                    {result.address && (
-                      <span className="mt-0.5 block text-xs text-(--sea-ink-soft)">
-                        {result.address}
-                      </span>
-                    )}
-                    {(result.latestPriceSighting ||
-                      result.distanceKm != null) && (
-                      <span className="mt-0.5 flex flex-wrap justify-between gap-x-2 text-xs text-(--sea-ink-soft)">
-                        {result.latestPriceSighting && (
-                          <span>{formatPrice(result.latestPriceSighting)}</span>
+                    {(result.address || result.distanceKm != null) && (
+                      <span className="mt-0.5 flex items-baseline justify-between gap-2 text-xs text-(--sea-ink-soft)">
+                        {result.address && (
+                          <span className="min-w-0">{result.address}</span>
                         )}
                         {result.distanceKm != null && (
-                          <span>{formatDistance(result.distanceKm)} away</span>
+                          <span className="ml-auto shrink-0 text-right">
+                            {formatDistance(result.distanceKm)} away
+                          </span>
                         )}
+                      </span>
+                    )}
+                    {result.latestPriceSighting && (
+                      <span className="mt-0.5 block text-xs text-(--sea-ink-soft)">
+                        {formatPrice(result.latestPriceSighting)}
                       </span>
                     )}
                   </button>

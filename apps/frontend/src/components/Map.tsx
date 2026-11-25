@@ -1,7 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import { MapContainer, Marker, Tooltip, useMap } from 'react-leaflet'
+import {
+  MapContainer,
+  Marker,
+  Tooltip,
+  ZoomControl,
+  useMap,
+} from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -41,6 +47,85 @@ function FlyToUser({ location }: { location?: Coordinates | null }) {
 
     return () => window.clearTimeout(timeout)
   }, [lat, lon, map])
+
+  return null
+}
+
+function RecenterMap({
+  center,
+  zoom,
+}: {
+  center?: Coordinates | null
+  zoom?: number
+}) {
+  const map = useMap()
+  const lat = center?.lat
+  const lon = center?.lon
+
+  useEffect(() => {
+    if (lat == null || lon == null) return
+
+    map.setView([lat, lon], zoom ?? map.getZoom())
+  }, [lat, lon, map, zoom])
+
+  return null
+}
+
+function distanceBetweenKm(
+  aLat: number,
+  aLon: number,
+  bLat: number,
+  bLon: number,
+) {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180
+  const latDelta = toRadians(bLat - aLat)
+  const lonDelta = toRadians(bLon - aLon)
+  const a =
+    Math.sin(latDelta / 2) ** 2 +
+    Math.cos(toRadians(aLat)) *
+      Math.cos(toRadians(bLat)) *
+      Math.sin(lonDelta / 2) ** 2
+
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function viewportRadiusKm(map: L.Map) {
+  const center = map.getCenter()
+  const bounds = map.getBounds()
+  const corners = [
+    bounds.getNorthEast(),
+    bounds.getNorthWest(),
+    bounds.getSouthEast(),
+    bounds.getSouthWest(),
+  ]
+
+  return Math.max(
+    0.2,
+    ...corners.map((corner) =>
+      distanceBetweenKm(center.lat, center.lng, corner.lat, corner.lng),
+    ),
+  )
+}
+
+function ViewportReporter({
+  onRadiusChange,
+}: {
+  onRadiusChange?: (radiusKm: number) => void
+}) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!onRadiusChange) return
+
+    const report = () => onRadiusChange(viewportRadiusKm(map))
+
+    map.on('moveend zoomend', report)
+    report()
+
+    return () => {
+      map.off('moveend zoomend', report)
+    }
+  }, [map, onRadiusChange])
 
   return null
 }
@@ -168,18 +253,30 @@ export interface MapProps {
   nearby?: SearchResult[]
   userLocation?: Coordinates | null
   isMockLocation?: boolean
+  /** Optional starting point instead of the poster's default view. */
+  center?: Coordinates | null
+  zoom?: number
+  /** Whether the map should fly to the user's position after mounting. */
+  flyToUser?: boolean
+  /** Reports the visible radius after the map settles from a move or zoom. */
+  onRadiusChange?: (radiusKm: number) => void
 }
 
 export default function Map({
   nearby = [],
   userLocation,
   isMockLocation = false,
+  center,
+  zoom,
+  flyToUser = true,
+  onRadiusChange,
 }: MapProps) {
   const navigate = useNavigate()
   const themeMode = useThemeMode()
-  // Always start on the poster's view, then fly to the user once it is known.
-  const initialCenter: [number, number] = POSTER_CENTER
-  const initialZoom = POSTER_ZOOM
+  const initialCenter: [number, number] = center
+    ? [center.lat, center.lon]
+    : POSTER_CENTER
+  const initialZoom = zoom ?? POSTER_ZOOM
   const markers = nearby.filter(
     (venue, index, all) =>
       all.findIndex(
@@ -191,16 +288,23 @@ export default function Map({
   )
 
   return (
-    <section id="map" aria-label="Map of pubs near you" className="relative">
+    <section
+      id="map"
+      aria-label="Map of pubs near you"
+      className="relative h-full"
+    >
       <MapContainer
         center={initialCenter}
         zoom={initialZoom}
         maxZoom={19}
         scrollWheelZoom={true}
-        className="h-100 w-full rounded-2xl"
+        zoomControl={false}
+        className="h-full w-full"
       >
         <VectorTileLayer styleUrl={MAP_STYLE_URLS[themeMode]} />
-        <FlyToUser location={userLocation} />
+        <FlyToUser location={flyToUser ? userLocation : null} />
+        <RecenterMap center={center} zoom={zoom} />
+        <ViewportReporter onRadiusChange={onRadiusChange} />
         <MarkerClusterGroup
           chunkedLoading
           maxClusterRadius={60}
@@ -243,6 +347,7 @@ export default function Map({
             isMockLocation={isMockLocation}
           />
         )}
+        <ZoomControl position="bottomright" />
       </MapContainer>
     </section>
   )

@@ -29,9 +29,10 @@ function mockSearchResults(results: ReturnType<typeof makeSearchResult>[]) {
   mockGraphqlFetch.mockResolvedValue({ search: results })
 }
 
-async function renderSearchBox() {
+async function renderSearchBox(route = '/') {
   const utils = renderWithProviders(
     <SearchBox filters={EMPTY_SEARCH_FILTERS} />,
+    { route },
   )
   const input = await screen.findByRole('combobox', {
     name: 'Search for a pub or city',
@@ -63,12 +64,13 @@ describe('SearchBox', () => {
   it('debounces typing before querying the API', async () => {
     mockSearchResults([city])
 
-    const { user, input } = await renderSearchBox()
+    const { user, input, router } = await renderSearchBox()
 
     await user.type(input, 'tro')
 
     expect(mockGraphqlFetch).not.toHaveBeenCalled()
     expect(screen.getByText('Searching…')).toBeInTheDocument()
+    expect(router.state.location.search).toEqual({ q: 'tro' })
 
     await waitFor(
       () => {
@@ -83,6 +85,40 @@ describe('SearchBox', () => {
         term: 'tro',
       },
     )
+  })
+
+  it('restores and shows results for a term from the URL', async () => {
+    mockSearchResults([city])
+
+    const { input } = await renderSearchBox('/?q=tro')
+
+    expect(input).toHaveValue('tro')
+    expect(input).not.toHaveFocus()
+
+    expect(await screen.findByRole('option')).toHaveTextContent('Trondheim')
+
+    await waitFor(
+      () => {
+        expect(mockGraphqlFetch).toHaveBeenCalledWith(
+          expect.stringContaining('query Search'),
+          { term: 'tro' },
+        )
+      },
+      { timeout: 2000 },
+    )
+  })
+
+  it('keeps results visible after the search bar loses focus', async () => {
+    mockSearchResults([city])
+
+    const { user, input } = await renderSearchBox()
+
+    await user.type(input, 'tro')
+    await screen.findByRole('option')
+
+    await user.tab()
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
   })
 
   it('lists cities before venues and shows result details', async () => {
@@ -103,6 +139,35 @@ describe('SearchBox', () => {
     expect(options[1]).toHaveTextContent('Pub')
     expect(options[1]).toHaveTextContent('Elgeseter gate 1')
     expect(options[1]).toHaveTextContent('NOK 89 · 500 ml')
+  })
+
+  it('keeps the distance on the address row with or without a price', async () => {
+    mockSearchResults([
+      makeSearchResult({
+        id: 'with-price',
+        name: 'With price',
+        distanceKm: 1.2,
+      }),
+      makeSearchResult({
+        id: 'without-price',
+        name: 'Without price',
+        latestPriceSighting: null,
+        distanceKm: 2.5,
+      }),
+    ])
+
+    const { user, input } = await renderSearchBox()
+    await search(user, input, 'tr')
+
+    const options = await screen.findAllByRole('option')
+
+    for (const option of options) {
+      const address = within(option).getByText('Elgeseter gate 1')
+      const distance = within(option).getByText(/km away$/)
+
+      expect(distance).toHaveClass('ml-auto')
+      expect(distance.parentElement).toBe(address.parentElement)
+    }
   })
 
   it('collapses long result lists and reveals them on request', async () => {

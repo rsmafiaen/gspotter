@@ -594,6 +594,13 @@ a {
   z-index: 900;
 }
 
+/* Keep the zoom controls clear of the collapsed mobile venue sheet. */
+@media (max-width: 1023px) {
+  .leaflet-bottom.leaflet-right {
+    bottom: 4.75rem;
+  }
+}
+
 /* Cluster marker for overlapping pubs. Kept at 44x44 so it is a comfortable
  * touch target (WCAG 2.2 target size) and never overlaps another marker. */
 .leaflet-marker-icon.gspotter-cluster {
@@ -617,6 +624,11 @@ a {
   animation: rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* A one-shot nudge on the closed mobile sheet that hints it can be dragged. */
+.nearby-sheet-hint {
+  animation: nearby-sheet-hint 900ms cubic-bezier(0.22, 1, 0.36, 1) 1;
+}
+
 /* The live map fades in on top of the server-rendered map poster. */
 .map-fade-in {
   animation: map-fade-in 300ms ease-out both;
@@ -630,6 +642,28 @@ a {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes nearby-sheet-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-8px);
+  }
+  55% {
+    transform: translateY(0);
+  }
+  70% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nearby-sheet-hint {
+    animation: none;
   }
 }
 

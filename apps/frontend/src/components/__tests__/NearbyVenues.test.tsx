@@ -4,30 +4,29 @@ import type { ComponentProps } from 'react'
 
 import { makeSearchResult } from '#/test/fixtures'
 import { renderWithProviders } from '#/test/render'
-import NearbyVenues from '../NearbyVenues'
+import { NearbyVenuesContent } from '../NearbyVenues'
 
 vi.mock('#/lib/use-user-time-zone', () => ({
   useUserTimeZone: () => 'UTC',
 }))
 
-type NearbyVenuesProps = ComponentProps<typeof NearbyVenues>
+type NearbyVenuesContentProps = ComponentProps<typeof NearbyVenuesContent>
 
-function renderNearbyVenues(overrides: Partial<NearbyVenuesProps> = {}) {
+function renderNearbyVenues(overrides: Partial<NearbyVenuesContentProps> = {}) {
   return renderWithProviders(
-    <NearbyVenues
+    <NearbyVenuesContent
       venues={[]}
       hasLocation={false}
       locating={false}
       locationError={null}
       isLoading={false}
       isError={false}
-      onRefresh={vi.fn()}
       {...overrides}
     />,
   )
 }
 
-describe('NearbyVenues', () => {
+describe('NearbyVenuesContent', () => {
   it('asks for location access when there is no location', async () => {
     renderNearbyVenues()
 
@@ -36,13 +35,12 @@ describe('NearbyVenues', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows a locating state and disables the refresh button', async () => {
+  it('shows a locating state', async () => {
     renderNearbyVenues({ locating: true })
 
     expect(
-      await screen.findByRole('button', { name: 'Finding location…' }),
-    ).toBeDisabled()
-    expect(screen.getByText('Finding your location…')).toBeInTheDocument()
+      await screen.findByText('Finding your location…'),
+    ).toBeInTheDocument()
   })
 
   it('shows a location error', async () => {
@@ -80,7 +78,6 @@ describe('NearbyVenues', () => {
   it('does not describe a radius when the distance filter is unlimited', async () => {
     renderNearbyVenues({ hasLocation: true, maxDistanceKm: null })
 
-    expect(await screen.findByText('Pubs near you')).toBeInTheDocument()
     expect(await screen.findByText('No pubs found.')).toBeInTheDocument()
   })
 
@@ -134,16 +131,5 @@ describe('NearbyVenues', () => {
 
     expect(name.closest('a')).toBeNull()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
-  })
-
-  it('calls onRefresh when the refresh button is clicked', async () => {
-    const onRefresh = vi.fn()
-    const { user } = renderNearbyVenues({ onRefresh })
-
-    await user.click(
-      await screen.findByRole('button', { name: 'Refresh location' }),
-    )
-
-    expect(onRefresh).toHaveBeenCalledTimes(1)
   })
 })

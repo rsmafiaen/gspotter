@@ -14,6 +14,7 @@ import {
   FIND_OR_CREATE_CITY,
 } from '#/graphql/cities'
 import { graphqlFetch } from '#/graphql/client'
+import { useDebounce } from '#/lib/use-debounce'
 import type { City, CityPlace } from '#/types/city'
 
 const DEBOUNCE_MS = 1000
@@ -72,18 +73,12 @@ export function CitySearchInput({
   const listId = useId()
 
   const [term, setTerm] = useState('')
-  const [debouncedTerm, setDebouncedTerm] = useState('')
+  const debouncedTerm = useDebounce(term.trim(), DEBOUNCE_MS)
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const [cityError, setCityError] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setDebouncedTerm(term.trim()), DEBOUNCE_MS)
-
-    return () => clearTimeout(timeout)
-  }, [term])
 
   useEffect(() => {
     if (value) {
@@ -258,7 +253,6 @@ export function CitySearchInput({
             onClick={() => {
               onChange(null)
               setTerm('')
-              setDebouncedTerm('')
               setCityError(null)
             }}
             className="rounded-lg px-2 py-0.5 text-xs font-bold text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--lagoon-deep)"

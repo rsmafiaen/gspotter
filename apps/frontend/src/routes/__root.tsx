@@ -3,6 +3,7 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  useRouterState,
 } from '@tanstack/react-router'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
@@ -88,6 +89,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const isMapPage = useRouterState({
+    select: (state) =>
+      state.location.pathname === '/' ||
+      /^\/[^/]+\/venues\/?$/.test(state.location.pathname),
+  })
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -110,7 +117,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <link rel="preconnect" href="https://tiles.openfreemap.org" />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(211,173,87,0.32)]">
+      <body
+        className={`font-sans antialiased wrap-anywhere selection:bg-[rgba(211,173,87,0.32)] ${
+          isMapPage ? 'overflow-hidden' : ''
+        }`}
+      >
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100000] focus:rounded-lg focus:bg-(--surface-strong) focus:px-4 focus:py-2 focus:font-bold focus:text-(--sea-ink) focus:shadow-lg"
@@ -120,7 +131,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <Header />
         {children}
 
-        <Footer />
+        {!isMapPage && <Footer />}
         {Devtools && (
           <Suspense fallback={null}>
             <Devtools />

@@ -64,12 +64,12 @@ export default function ClientMap(props: MapProps) {
   const ready = mounted && LazyMap != null
 
   return (
-    <div className="relative h-100 w-full">
+    <div className="relative h-full w-full">
       {/* The map fades in on top of the poster rather than the poster fading
           out, so the poster stays painted and remains the LCP element. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl bg-(--surface-strong)"
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] bg-(--surface-strong)"
       >
         <MapPoster ready={ready} />
       </div>

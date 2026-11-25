@@ -46,8 +46,13 @@ vi.mock('react-leaflet', () => ({
   Tooltip: ({ children }: PopupProps) => (
     <div data-testid="tooltip">{children}</div>
   ),
+  ZoomControl: ({ position }: { position: string }) => (
+    <div data-testid="zoom-control" data-position={position} />
+  ),
   useMap: () => ({
     flyTo,
+    setView: vi.fn(),
+    getZoom: () => 3,
     on: vi.fn(),
     off: vi.fn(),
     getContainer: () => ({
@@ -99,6 +104,10 @@ describe('Map', () => {
       'data-style',
       MAP_STYLE_URLS.light,
     )
+    expect(screen.getByTestId('zoom-control')).toHaveAttribute(
+      'data-position',
+      'bottomright',
+    )
 
     const marker = screen.getByTestId('marker')
 
@@ -106,6 +115,16 @@ describe('Map', () => {
     expect(marker).toHaveTextContent(venue.name)
     expect(marker).toHaveTextContent(venue.address!)
     expect(marker).toHaveTextContent('NOK 89 · 500 ml')
+  })
+
+  it('uses a supplied centre and zoom', () => {
+    render(<Map center={{ lat: 59.9139, lon: 10.7522 }} zoom={11} />)
+
+    expect(screen.getByTestId('map')).toHaveAttribute(
+      'data-center',
+      '59.9139,10.7522',
+    )
+    expect(screen.getByTestId('map')).toHaveAttribute('data-zoom', '11')
   })
 
   it('deduplicates venues with the same name and coordinates', () => {

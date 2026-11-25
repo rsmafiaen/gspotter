@@ -427,6 +427,14 @@ a {
   background: color-mix(in oklab, var(--sea-ink) 6%, transparent);
 }
 
+.striped-table > tbody > tr:not(.no-stripe):nth-child(even) {
+  background: color-mix(in oklab, var(--sea-ink) 6%, transparent);
+}
+
+.striped-table > tbody > tr:not(.no-stripe):hover {
+  background: color-mix(in oklab, var(--lagoon) 8%, transparent);
+}
+
 .venue-list > li:hover {
   background: var(--chip-bg);
 }

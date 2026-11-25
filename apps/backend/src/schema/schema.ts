@@ -808,6 +808,88 @@ builder.mutationType({
         })
       },
     }),
+    deleteVenue: t.field({
+      type: 'Boolean',
+      description:
+        'Permanently delete a venue together with its opening hours, prices and reviews.',
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_parent, args, context) => {
+        requireAdmin(context)
+
+        const venue = await prisma.venue.findUnique({
+          where: { id: args.id },
+          select: { id: true },
+        })
+
+        if (venue === null) {
+          throw new GraphQLError(`Unknown venue: ${args.id}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        await prisma.$transaction([
+          prisma.openingHours.deleteMany({ where: { venueId: args.id } }),
+          prisma.openingHoursNote.deleteMany({ where: { venueId: args.id } }),
+          prisma.priceSighting.deleteMany({ where: { venueId: args.id } }),
+          prisma.review.deleteMany({ where: { venueId: args.id } }),
+          prisma.venue.delete({ where: { id: args.id } }),
+        ])
+
+        return true
+      },
+    }),
+    deleteReview: t.field({
+      type: 'Boolean',
+      description: 'Permanently delete a review.',
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_parent, args, context) => {
+        requireAdmin(context)
+
+        const review = await prisma.review.findUnique({
+          where: { id: args.id },
+          select: { id: true },
+        })
+
+        if (review === null) {
+          throw new GraphQLError(`Unknown review: ${args.id}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        await prisma.review.delete({ where: { id: args.id } })
+
+        return true
+      },
+    }),
+    deletePriceSighting: t.field({
+      type: 'Boolean',
+      description: 'Permanently delete a price sighting.',
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_parent, args, context) => {
+        requireAdmin(context)
+
+        const sighting = await prisma.priceSighting.findUnique({
+          where: { id: args.id },
+          select: { id: true },
+        })
+
+        if (sighting === null) {
+          throw new GraphQLError(`Unknown price sighting: ${args.id}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        await prisma.priceSighting.delete({ where: { id: args.id } })
+
+        return true
+      },
+    }),
     createVenue: t.prismaFieldWithInput({
       type: 'Venue',
       input: {

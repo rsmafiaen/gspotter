@@ -6,6 +6,8 @@
 
 Our inital spec, written for the first deliverable, and what we are basing the development on, is outlined in [./docs/inital-plan.md](./docs/initial-plan.md)
 
+Password for admin page access is "guinness"
+
 ## Index
 
 - [Prerequisites](#prerequisites)

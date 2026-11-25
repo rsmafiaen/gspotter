@@ -17,6 +17,7 @@ export interface VenueOpeningHoursNote {
 }
 
 export interface VenuePriceSighting {
+  id?: string
   price: number
   size: string
   sizeMl: number | null

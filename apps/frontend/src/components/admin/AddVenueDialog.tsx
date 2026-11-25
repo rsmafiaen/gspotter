@@ -8,6 +8,7 @@ import { Dialog, useDialog } from '#/components/ui/Dialog'
 import { FormField, inputClassName } from '#/components/ui/FormField'
 import { graphqlFetch } from '#/graphql/client'
 import { CREATE_VENUE } from '#/graphql/venues'
+import { ADMIN_TOKEN } from '#/lib/admin-token'
 import { timeToIso } from '#/lib/opening-hours'
 import type { City } from '#/types/city'
 import { OpeningHoursEditor } from './OpeningHoursEditor'
@@ -32,11 +33,6 @@ interface CreateVenueRequest {
 interface AddVenueDialogProps {
   onCreated?: () => void
 }
-
-// Token lasts till 2033 for development. In production this would come from an
-// auth provider.
-const ADMIN_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMWExZmZlZC1hNDY3LTc3MDQtOTM0MS1jM2ZjZjNiMTk5YWMiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MjAwMDAwMDAwMH0.EohmXYCm3GANzUwpGetPEbEP8CRt5oF6Roc-4Y4ZLQk'
 
 export function AddVenueDialog({ onCreated }: AddVenueDialogProps) {
   return (

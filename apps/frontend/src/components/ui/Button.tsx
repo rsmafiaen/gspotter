@@ -6,8 +6,7 @@ const VARIANTS = {
   secondary:
     'bg-(--chip-bg) text-(--sea-ink) hover:-translate-y-0.5 hover:bg-(--link-bg-hover)',
   ghost: 'text-(--sea-ink-soft) hover:bg-(--chip-bg) hover:text-(--sea-ink)',
-  danger:
-    'border border-red-500/40 bg-red-500/10 text-(--sea-ink) hover:bg-red-500/20',
+  danger: 'bg-red-500/10 text-(--sea-ink) hover:bg-red-500/20',
 } as const
 
 export type ButtonVariant = keyof typeof VARIANTS

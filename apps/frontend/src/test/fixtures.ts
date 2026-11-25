@@ -3,7 +3,7 @@ import type {
   SearchPriceSighting,
   SearchResult,
 } from '#/types/search'
-import type { VenueReview, venue } from '#/types/venue'
+import type { VenuePriceSighting, VenueReview, venue } from '#/types/venue'
 
 export function makeOpeningHours(
   overrides: Partial<SearchOpeningHours> = {},
@@ -27,6 +27,16 @@ export function makePriceSighting(
     timeStart: null,
     timeEnd: null,
     timeSighted: '2026-10-01T12:00:00.000Z',
+    ...overrides,
+  }
+}
+
+export function makeVenuePriceSighting(
+  overrides: Partial<VenuePriceSighting> = {},
+): VenuePriceSighting {
+  return {
+    id: 'price-1',
+    ...makePriceSighting(),
     ...overrides,
   }
 }
@@ -78,7 +88,7 @@ export function makeVenue(overrides: Partial<venue> = {}): venue {
     },
     openingHours: [makeOpeningHours()],
     openingHoursNotes: [],
-    pricesSighted: [makePriceSighting()],
+    pricesSighted: [makeVenuePriceSighting()],
     reviews: [makeReview()],
     ...overrides,
   }

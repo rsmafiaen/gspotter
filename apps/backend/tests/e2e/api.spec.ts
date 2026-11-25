@@ -886,3 +886,228 @@ test('createVenue requires an admin user', async ({ request }) => {
   expect(response.status(), JSON.stringify(body)).toBe(200)
   expect(body.errors?.[0]?.message).toBe('Unauthorized')
 })
+
+test('deleteVenue removes the venue and all of its related records', async ({
+  request,
+}) => {
+  const suffix = randomUUID()
+  let cityId: string | undefined
+  let venueId: string | undefined
+
+  try {
+    const city = await prisma.city.create({
+      data: {
+        name: `zz delete city ${suffix}`,
+        centreLat: 59.9139,
+        centreLon: 10.7522,
+      },
+    })
+    cityId = city.id
+
+    const venue = await prisma.venue.create({
+      data: {
+        name: `zz delete venue ${suffix}`,
+        address: 'Testveien 2',
+        lat: 59.9139,
+        lon: 10.7522,
+        cityId: city.id,
+        openingHours: {
+          create: [
+            {
+              days: [Day.MON],
+              opening: new Date('2000-01-01T12:00:00Z'),
+              closing: new Date('2000-01-01T20:00:00Z'),
+            },
+          ],
+        },
+        openingHoursNotes: {
+          create: [{ days: [Day.MON], note: 'Closed in July.' }],
+        },
+        pricesSighted: {
+          create: [
+            {
+              price: 99,
+              size: GlassSize.PINT,
+              limitation: [],
+            },
+          ],
+        },
+        reviews: {
+          create: [
+            {
+              username: 'playwright',
+              body: `Delete venue review ${suffix}`,
+              rating: 4,
+            },
+          ],
+        },
+      },
+    })
+    venueId = venue.id
+
+    const { deleteVenue } = await adminQuery<{ deleteVenue: boolean }>(
+      request,
+      `
+        mutation DeleteVenue($id: String!) {
+          deleteVenue(id: $id)
+        }
+      `,
+      { id: venue.id },
+    )
+
+    expect(deleteVenue).toBe(true)
+
+    const [deletedVenue, openingHours, openingHoursNotes, prices, reviews] =
+      await Promise.all([
+        prisma.venue.findUnique({ where: { id: venue.id } }),
+        prisma.openingHours.count({ where: { venueId: venue.id } }),
+        prisma.openingHoursNote.count({ where: { venueId: venue.id } }),
+        prisma.priceSighting.count({ where: { venueId: venue.id } }),
+        prisma.review.count({ where: { venueId: venue.id } }),
+      ])
+
+    expect(deletedVenue).toBeNull()
+    expect(openingHours).toBe(0)
+    expect(openingHoursNotes).toBe(0)
+    expect(prices).toBe(0)
+    expect(reviews).toBe(0)
+  } finally {
+    if (venueId) {
+      await prisma.openingHours.deleteMany({ where: { venueId } })
+      await prisma.openingHoursNote.deleteMany({ where: { venueId } })
+      await prisma.priceSighting.deleteMany({ where: { venueId } })
+      await prisma.review.deleteMany({ where: { venueId } })
+      await prisma.venue.deleteMany({ where: { id: venueId } })
+    }
+
+    if (cityId) {
+      await prisma.city.deleteMany({ where: { id: cityId } })
+    }
+  }
+})
+
+test('deleteVenue rejects an unknown venue', async ({ request }) => {
+  const unknownVenueId = '00000000-0000-0000-0000-000000000000'
+  const response = await request.post('/', {
+    headers: { authorization: `Bearer ${adminToken()}` },
+    data: {
+      query: `
+        mutation {
+          deleteVenue(id: "${unknownVenueId}")
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe(`Unknown venue: ${unknownVenueId}`)
+})
+
+test('deleteReview removes the review', async ({ request }) => {
+  const { venue } = await query<{ venue: { id: string }[] }>(
+    request,
+    `
+      query {
+        venue {
+          id
+        }
+      }
+    `,
+  )
+  const seededVenue = venue.at(0)
+
+  if (!seededVenue) {
+    throw new Error('No seeded venue was returned')
+  }
+
+  const review = await prisma.review.create({
+    data: {
+      venueId: seededVenue.id,
+      username: 'playwright',
+      body: `Delete review ${randomUUID()}`,
+      rating: 3,
+    },
+  })
+
+  const { deleteReview } = await adminQuery<{ deleteReview: boolean }>(
+    request,
+    `
+      mutation DeleteReview($id: String!) {
+        deleteReview(id: $id)
+      }
+    `,
+    { id: review.id },
+  )
+
+  expect(deleteReview).toBe(true)
+  expect(
+    await prisma.review.findUnique({ where: { id: review.id } }),
+  ).toBeNull()
+})
+
+test('deletePriceSighting removes the price sighting', async ({ request }) => {
+  const { venue } = await query<{ venue: { id: string }[] }>(
+    request,
+    `
+      query {
+        venue {
+          id
+        }
+      }
+    `,
+  )
+  const seededVenue = venue.at(0)
+
+  if (!seededVenue) {
+    throw new Error('No seeded venue was returned')
+  }
+
+  const sighting = await prisma.priceSighting.create({
+    data: {
+      venueId: seededVenue.id,
+      price: 99,
+      size: GlassSize.PINT,
+      limitation: [],
+    },
+  })
+
+  try {
+    const { deletePriceSighting } = await adminQuery<{
+      deletePriceSighting: boolean
+    }>(
+      request,
+      `
+        mutation DeletePriceSighting($id: String!) {
+          deletePriceSighting(id: $id)
+        }
+      `,
+      { id: sighting.id },
+    )
+
+    expect(deletePriceSighting).toBe(true)
+    expect(
+      await prisma.priceSighting.findUnique({ where: { id: sighting.id } }),
+    ).toBeNull()
+  } finally {
+    await prisma.priceSighting.deleteMany({ where: { id: sighting.id } })
+  }
+})
+
+test('delete mutations require an admin user', async ({ request }) => {
+  const response = await request.post('/', {
+    data: {
+      query: `
+        mutation {
+          deleteVenue(id: "00000000-0000-0000-0000-000000000000")
+          deleteReview(id: "00000000-0000-0000-0000-000000000000")
+          deletePriceSighting(id: "00000000-0000-0000-0000-000000000000")
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe('Unauthorized')
+})

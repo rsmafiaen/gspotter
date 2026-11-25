@@ -27,6 +27,12 @@ export const CREATE_VENUE = `
   }
 `
 
+export const DELETE_VENUE = `
+  mutation DeleteVenue($id: String!) {
+    deleteVenue(id: $id)
+  }
+`
+
 export const GET_VENUE = `
   query GetVenues {
     venue {
@@ -51,6 +57,7 @@ export const GET_VENUE = `
         note
       }
       pricesSighted {
+        id
         price
         size
         sizeMl
@@ -119,6 +126,7 @@ export const GET_CITY_VENUES = `
         closing
       }
       pricesSighted {
+        id
         price
         size
         sizeMl

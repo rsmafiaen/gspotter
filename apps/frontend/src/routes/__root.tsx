@@ -9,8 +9,6 @@ import Footer from '../components/Footer'
 import Header from '../components/Header'
 
 import appCss from '../styles.css?url'
-import loraFont from '../assets/fonts/lora-latin.woff2?url'
-import playfairFont from '../assets/fonts/playfair-display-latin.woff2?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -100,20 +98,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: MOCK_LOCATION_SCRIPT }} />
-        <link
-          rel="preload"
-          href={loraFont}
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preload"
-          href={playfairFont}
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
         <link rel="preconnect" href="https://tiles.openfreemap.org" />
         <HeadContent />
       </head>

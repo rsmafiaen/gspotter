@@ -12,7 +12,7 @@ export default function Header() {
         <div className="flex w-full flex-1 items-center justify-between gap-3 text-base font-semibold">
           <a
             href={import.meta.env.BASE_URL}
-            className="m-0 p-0 text-left font-display tracking-[0.08em] text-(--header-ink) no-underline font-extrabold hover:text-(--header-ink)"
+            className="m-0 p-0 text-left font-sans tracking-[0.08em] text-(--header-ink) no-underline font-extrabold hover:text-(--header-ink)"
           >
             G-SPOTTER
           </a>

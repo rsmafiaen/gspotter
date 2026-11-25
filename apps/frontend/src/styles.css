@@ -1,53 +1,11 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
-/*
- * Fonts are self-hosted and bundled by Vite instead of loaded from Google
- * Fonts. That removes two third-party round trips from the critical path and
- * lets the HTML preload the exact files.
- *
- * The `* Fallback` faces describe the local Georgia fallback with the web
- * font's metrics, so swapping from the fallback to the web font does not
- * reflow the page (prevents Cumulative Layout Shift).
- */
-@font-face {
-  font-family: 'Lora';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('./assets/fonts/lora-latin.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Lora Fallback';
-  src: local('Georgia');
-  size-adjust: 104.98%;
-  ascent-override: 95.83%;
-  descent-override: 26.1%;
-  line-gap-override: 0%;
-}
-
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 500 900;
-  font-display: swap;
-  src: url('./assets/fonts/playfair-display-latin.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Playfair Display Fallback';
-  src: local('Georgia');
-  size-adjust: 101.39%;
-  ascent-override: 106.72%;
-  descent-override: 24.76%;
-  line-gap-override: 0%;
-}
-
+/* No webfonts are bundled: use the browser's standard system UI font. */
 @theme {
-  --font-sans: 'Lora', 'Lora Fallback', Georgia, 'Times New Roman', serif;
-  --font-display:
-    'Playfair Display', 'Playfair Display Fallback', Georgia, serif;
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 /* Light theme: the creamy head of a settling pint. */
@@ -135,7 +93,6 @@ body {
 h1,
 h2,
 h3 {
-  font-family: 'Playfair Display', 'Playfair Display Fallback', Georgia, serif;
   letter-spacing: -0.01em;
 }
 
@@ -199,7 +156,7 @@ pre code {
 }
 
 .display-title {
-  font-family: 'Playfair Display', 'Playfair Display Fallback', Georgia, serif;
+  font-family: var(--font-sans);
 }
 
 .island-shell {

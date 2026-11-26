@@ -68,7 +68,7 @@ function VenuePage() {
         <ViewVenue venue={venueToSearchResult(current)} />
         <section
           aria-label={`Map showing ${current.name}`}
-          className="overflow-hidden rounded-2xl bg-(--surface-strong) p-2"
+          className="h-72 overflow-hidden rounded-2xl bg-(--surface-strong) p-2 lg:h-auto"
         >
           <ClientVenueMap
             lat={current.lat}

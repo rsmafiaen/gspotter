@@ -145,6 +145,7 @@ export function CitySearchInput({
       ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['search'] })
+      void queryClient.invalidateQueries({ queryKey: ['citySearch'] })
     },
   })
 

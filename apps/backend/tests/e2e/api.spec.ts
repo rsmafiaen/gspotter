@@ -887,6 +887,166 @@ test('createVenue requires an admin user', async ({ request }) => {
   expect(body.errors?.[0]?.message).toBe('Unauthorized')
 })
 
+test('updateVenue updates venue details and replaces opening hours', async ({
+  request,
+}) => {
+  const suffix = randomUUID()
+  let cityId: string | undefined
+  let venueId: string | undefined
+
+  try {
+    const city = await prisma.city.create({
+      data: {
+        name: `zz update city ${suffix}`,
+        displayName: `zz update city ${suffix}, Testland`,
+        centreLat: 59.1234,
+        centreLon: 10.5678,
+      },
+    })
+    cityId = city.id
+
+    const venue = await prisma.venue.create({
+      data: {
+        name: `zz update venue ${suffix}`,
+        address: 'Testveien 3',
+        lat: 59.1234,
+        lon: 10.5678,
+        cityId: city.id,
+        openingHours: {
+          create: [
+            {
+              days: [Day.MON],
+              opening: new Date('2000-01-01T12:00:00Z'),
+              closing: new Date('2000-01-01T20:00:00Z'),
+            },
+          ],
+        },
+      },
+    })
+    venueId = venue.id
+
+    const updatedName = `zz updated venue ${suffix}`
+    const { updateVenue } = await adminQuery<{
+      updateVenue: {
+        id: string
+        name: string
+        address: string
+        city: { id: string }
+        openingHours: { days: string[] }[]
+      }
+    }>(
+      request,
+      `
+        mutation UpdateVenue($input: MutationUpdateVenueInput!) {
+          updateVenue(input: $input) {
+            id
+            name
+            address
+            city {
+              id
+            }
+            openingHours {
+              days
+            }
+          }
+        }
+      `,
+      {
+        input: {
+          id: venue.id,
+          name: updatedName,
+          address: 'Testveien 3',
+          cityId: city.id,
+          openingHours: [
+            {
+              days: ['TUE'],
+              opening: '2000-01-01T12:00:00.000Z',
+              closing: '2000-01-01T20:00:00.000Z',
+            },
+          ],
+        },
+      },
+    )
+
+    expect(updateVenue).toMatchObject({
+      id: venue.id,
+      name: updatedName,
+      address: 'Testveien 3',
+      city: { id: city.id },
+      openingHours: [expect.objectContaining({ days: ['TUE'] })],
+    })
+
+    const stored = await prisma.venue.findUnique({
+      where: { id: venue.id },
+      include: { openingHours: true },
+    })
+
+    expect(stored?.name).toBe(updatedName)
+    expect(stored?.openingHours).toHaveLength(1)
+    expect(stored?.openingHours[0]?.days).toEqual([Day.TUE])
+  } finally {
+    if (venueId) {
+      await prisma.openingHours.deleteMany({ where: { venueId } })
+      await prisma.openingHoursNote.deleteMany({ where: { venueId } })
+      await prisma.priceSighting.deleteMany({ where: { venueId } })
+      await prisma.review.deleteMany({ where: { venueId } })
+      await prisma.venue.deleteMany({ where: { id: venueId } })
+    }
+
+    if (cityId) {
+      await prisma.city.deleteMany({ where: { id: cityId } })
+    }
+  }
+})
+
+test('updateVenue requires an admin user', async ({ request }) => {
+  const response = await request.post('/', {
+    data: {
+      query: `
+        mutation {
+          updateVenue(
+            input: {
+              id: "00000000-0000-0000-0000-000000000000"
+              name: "Playwright venue"
+            }
+          ) {
+            id
+          }
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe('Unauthorized')
+})
+
+test('updateVenue rejects an unknown venue', async ({ request }) => {
+  const unknownVenueId = '00000000-0000-0000-0000-000000000000'
+  const response = await request.post('/', {
+    headers: { authorization: `Bearer ${adminToken()}` },
+    data: {
+      query: `
+        mutation {
+          updateVenue(
+            input: {
+              id: "${unknownVenueId}"
+              name: "Playwright venue"
+            }
+          ) {
+            id
+          }
+        }
+      `,
+    },
+  })
+  const body: GraphQLResponse<unknown> = await response.json()
+
+  expect(response.status(), JSON.stringify(body)).toBe(200)
+  expect(body.errors?.[0]?.message).toBe(`Unknown venue: ${unknownVenueId}`)
+})
+
 test('deleteVenue removes the venue and all of its related records', async ({
   request,
 }) => {

@@ -1,6 +1,7 @@
 export interface VenueCity {
   id: string
   name: string
+  displayName?: string | null
   lat: number
   lon: number
 }

@@ -968,6 +968,112 @@ builder.mutationType({
         })
       },
     }),
+    updateVenue: t.prismaFieldWithInput({
+      type: 'Venue',
+      description:
+        'Update a venue. Only the provided fields are changed; providing opening hours replaces the existing entries.',
+      input: {
+        id: t.input.string({ required: true }),
+        name: t.input.string({ required: false }),
+        address: t.input.string({
+          required: false,
+          description:
+            'Street address used to refresh the venue coordinates when it changes.',
+        }),
+        cityId: t.input.string({
+          required: false,
+          description:
+            'ID of an existing city, for example from the city search.',
+        }),
+        openingHours: t.input.field({
+          type: [openingHoursInputRef],
+          required: false,
+        }),
+        openingHoursNotes: t.input.field({
+          type: [openingHoursNoteInputRef],
+          required: false,
+        }),
+      },
+      resolve: async (query, _parent, args, context) => {
+        requireAdmin(context)
+
+        const existing = await prisma.venue.findUnique({
+          where: { id: args.input.id },
+          select: { id: true, address: true, cityId: true },
+        })
+
+        if (existing === null) {
+          throw new GraphQLError(`Unknown venue: ${args.input.id}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        const address = args.input.address ?? existing.address
+        const cityId = args.input.cityId ?? existing.cityId
+        const city = await prisma.city.findUnique({
+          where: { id: cityId },
+          select: { id: true, name: true, displayName: true },
+        })
+
+        if (city === null) {
+          throw new GraphQLError(`Unknown city: ${cityId}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        const addressOrCityChanged =
+          address !== existing.address || cityId !== existing.cityId
+        const coordinates = addressOrCityChanged
+          ? await geocodeAddress(address, city.displayName ?? city.name)
+          : null
+
+        if (addressOrCityChanged && coordinates === null) {
+          throw new GraphQLError(`Could not geocode address: ${address}`, {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+
+        const data: Prisma.VenueUpdateInput = {
+          ...(args.input.name != null ? { name: args.input.name } : {}),
+          ...(args.input.address != null ? { address } : {}),
+          ...(args.input.cityId != null
+            ? { city: { connect: { id: city.id } } }
+            : {}),
+          ...(coordinates !== null
+            ? { lat: coordinates.lat, lon: coordinates.lon }
+            : {}),
+          ...(args.input.openingHours != null
+            ? {
+                openingHours: {
+                  deleteMany: {},
+                  create: args.input.openingHours.map((hours) => ({
+                    days: [...hours.days],
+                    opening: hours.opening,
+                    closing: hours.closing,
+                  })),
+                },
+              }
+            : {}),
+          ...(args.input.openingHoursNotes != null
+            ? {
+                openingHoursNotes: {
+                  deleteMany: {},
+                  create: args.input.openingHoursNotes.map((note) => ({
+                    days: [...note.days],
+                    note: note.note,
+                  })),
+                },
+              }
+            : {}),
+        }
+
+        return prisma.venue.update({
+          ...query,
+          where: { id: args.input.id },
+          data,
+        })
+      },
+    }),
     findOrCreateCity: t.prismaFieldWithInput({
       type: 'City',
       input: {

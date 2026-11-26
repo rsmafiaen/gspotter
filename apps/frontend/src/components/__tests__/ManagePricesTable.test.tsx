@@ -5,7 +5,7 @@ import { graphqlFetch } from '#/graphql/client'
 import { DELETE_PRICE_SIGHTING } from '#/graphql/price-sightings'
 import { makeVenue, makeVenuePriceSighting } from '#/test/fixtures'
 import { renderWithProviders } from '#/test/render'
-import { ManagePricesDialog } from '../admin/ManagePricesDialog'
+import { ManagePricesTable } from '../admin/ManagePricesTable'
 
 vi.mock('#/graphql/client', () => ({
   graphqlFetch: vi.fn(),
@@ -32,7 +32,7 @@ const VENUE = makeVenue({
   ],
 })
 
-describe('ManagePricesDialog', () => {
+describe('ManagePricesTable', () => {
   beforeEach(() => {
     mockGraphqlFetch.mockReset()
   })
@@ -41,20 +41,15 @@ describe('ManagePricesDialog', () => {
     mockGraphqlFetch.mockResolvedValue({ deletePriceSighting: true })
 
     const { user, queryClient } = renderWithProviders(
-      <ManagePricesDialog venue={VENUE} />,
+      <ManagePricesTable venue={VENUE} />,
     )
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
-    await user.click(
-      await screen.findByRole('button', { name: 'Manage prices' }),
-    )
+    const table = await screen.findByRole('table', { name: 'Price sightings' })
+    expect(within(table).getByText('NOK 89 · 500 ml')).toBeInTheDocument()
+    expect(within(table).getByText('NOK 99 · 500 ml')).toBeInTheDocument()
 
-    const dialog = await screen.findByRole('dialog')
-    expect(dialog).toHaveTextContent('Manage price sightings')
-    expect(within(dialog).getByText('NOK 89 · 500 ml')).toBeInTheDocument()
-    expect(within(dialog).getByText('NOK 99 · 500 ml')).toBeInTheDocument()
-
-    const sighting = within(dialog).getByText('NOK 89 · 500 ml').closest('li')
+    const sighting = within(table).getByText('NOK 89 · 500 ml').closest('tr')
 
     if (!sighting) throw new Error('Price sighting row was not found')
 
@@ -84,12 +79,8 @@ describe('ManagePricesDialog', () => {
   })
 
   it('shows an empty state when the venue has no price sightings', async () => {
-    const { user } = renderWithProviders(
-      <ManagePricesDialog venue={makeVenue({ pricesSighted: [] })} />,
-    )
-
-    await user.click(
-      await screen.findByRole('button', { name: 'Manage prices' }),
+    renderWithProviders(
+      <ManagePricesTable venue={makeVenue({ pricesSighted: [] })} />,
     )
 
     expect(
@@ -97,5 +88,8 @@ describe('ManagePricesDialog', () => {
         'No price sightings have been reported for this venue.',
       ),
     ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('table', { name: 'Price sightings' }),
+    ).not.toBeInTheDocument()
   })
 })

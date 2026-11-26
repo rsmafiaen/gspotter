@@ -34,6 +34,9 @@ describe('VenueTable', () => {
     expect(
       within(table).getByRole('link', { name: 'Studentersamfundet' }),
     ).toBeInTheDocument()
+    expect(
+      within(table).getByRole('link', { name: 'Studentersamfundet' }),
+    ).toHaveAttribute('href', '/admin/venues/venue-1')
     expect(within(table).getByText('Trondheim')).toBeInTheDocument()
     expect(within(table).getByText('Elgeseter gate 1')).toBeInTheDocument()
     expect(within(table).getByText('63.42280, 10.39570')).toBeInTheDocument()

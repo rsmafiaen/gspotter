@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as CityIdVenuesIndexRouteImport } from './routes/$cityId/venues/index'
 import { Route as CityIdVenuesVenueIdRouteImport } from './routes/$cityId/venues/$venueId'
+import { Route as AdminVenuesVenueIdRouteImport } from './routes/admin/venues/$venueId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,6 +26,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const CityIdVenuesIndexRoute = CityIdVenuesIndexRouteImport.update({
   id: '/$cityId/venues/',
   path: '/$cityId/venues/',
@@ -34,42 +41,65 @@ const CityIdVenuesVenueIdRoute = CityIdVenuesVenueIdRouteImport.update({
   path: '/$cityId/venues/$venueId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVenuesVenueIdRoute = AdminVenuesVenueIdRouteImport.update({
+  id: '/venues/$venueId',
+  path: '/venues/$venueId',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
+  '/admin/venues/$venueId': typeof AdminVenuesVenueIdRoute
   '/$cityId/venues/': typeof CityIdVenuesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminIndexRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
+  '/admin/venues/$venueId': typeof AdminVenuesVenueIdRoute
   '/$cityId/venues': typeof CityIdVenuesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
   '/$cityId/venues/$venueId': typeof CityIdVenuesVenueIdRoute
+  '/admin/venues/$venueId': typeof AdminVenuesVenueIdRoute
   '/$cityId/venues/': typeof CityIdVenuesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/$cityId/venues/$venueId' | '/$cityId/venues/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/admin/'
+    | '/$cityId/venues/$venueId'
+    | '/admin/venues/$venueId'
+    | '/$cityId/venues/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/$cityId/venues/$venueId' | '/$cityId/venues'
+  to:
+    | '/'
+    | '/admin'
+    | '/$cityId/venues/$venueId'
+    | '/admin/venues/$venueId'
+    | '/$cityId/venues'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/admin/'
     | '/$cityId/venues/$venueId'
+    | '/admin/venues/$venueId'
     | '/$cityId/venues/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CityIdVenuesVenueIdRoute: typeof CityIdVenuesVenueIdRoute
   CityIdVenuesIndexRoute: typeof CityIdVenuesIndexRoute
 }
@@ -90,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/$cityId/venues/': {
       id: '/$cityId/venues/'
       path: '/$cityId/venues'
@@ -104,12 +141,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CityIdVenuesVenueIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/venues/$venueId': {
+      id: '/admin/venues/$venueId'
+      path: '/venues/$venueId'
+      fullPath: '/admin/venues/$venueId'
+      preLoaderRoute: typeof AdminVenuesVenueIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminVenuesVenueIdRoute: typeof AdminVenuesVenueIdRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminVenuesVenueIdRoute: AdminVenuesVenueIdRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   CityIdVenuesVenueIdRoute: CityIdVenuesVenueIdRoute,
   CityIdVenuesIndexRoute: CityIdVenuesIndexRoute,
 }

@@ -106,29 +106,31 @@ export function DeleteReviewsPanel({ venues }: DeleteReviewsPanelProps) {
 
   return (
     <div className="grid gap-3">
-      <FormField
-        label="Filter by venue"
-        htmlFor={filterId}
-        className="max-w-md"
-      >
-        <select
-          id={filterId}
-          value={venueFilter}
-          onChange={(event) => {
-            setVenueFilter(event.target.value)
-            setReviewToDelete(null)
-            reset()
-          }}
-          className={inputClassName}
+      {venues.length > 1 && (
+        <FormField
+          label="Filter by venue"
+          htmlFor={filterId}
+          className="max-w-md"
         >
-          <option value="">All venues</option>
-          {venues.map((current) => (
-            <option key={current.id} value={current.id}>
-              {current.name} · {current.city.name}
-            </option>
-          ))}
-        </select>
-      </FormField>
+          <select
+            id={filterId}
+            value={venueFilter}
+            onChange={(event) => {
+              setVenueFilter(event.target.value)
+              setReviewToDelete(null)
+              reset()
+            }}
+            className={inputClassName}
+          >
+            <option value="">All venues</option>
+            {venues.map((current) => (
+              <option key={current.id} value={current.id}>
+                {current.name} · {current.city.name}
+              </option>
+            ))}
+          </select>
+        </FormField>
+      )}
 
       <p className="text-xs font-bold text-(--sea-ink-soft)">
         {filteredRows.length} {filteredRows.length === 1 ? 'review' : 'reviews'}

@@ -27,6 +27,29 @@ export const CREATE_VENUE = `
   }
 `
 
+export const UPDATE_VENUE = `
+  mutation UpdateVenue($input: MutationUpdateVenueInput!) {
+    updateVenue(input: $input) {
+      id
+      name
+      address
+      lat
+      lon
+      city {
+        id
+        name
+        lat
+        lon
+      }
+      openingHours {
+        days
+        opening
+        closing
+      }
+    }
+  }
+`
+
 export const DELETE_VENUE = `
   mutation DeleteVenue($id: String!) {
     deleteVenue(id: $id)
@@ -44,6 +67,7 @@ export const GET_VENUE = `
       city {
         id
         name
+        displayName
         lat
         lon
       }
@@ -161,6 +185,37 @@ export interface VenuesPage {
   venueCount?: number
 }
 
+export const ADMIN_VENUES_PAGE_SIZE = 10
+
+/** Cursor-based venue pages used by the admin table. */
+export const adminVenuesQueryOptions = (cityId: string | null) =>
+  infiniteQueryOptions({
+    queryKey: ['venues', 'admin', cityId],
+    queryFn: ({ pageParam }) =>
+      graphqlFetch<VenuesPage>(GET_CITY_VENUES, {
+        cityId,
+        limit: ADMIN_VENUES_PAGE_SIZE,
+        cursor: pageParam,
+        includeCount: true,
+      }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage, allPages) => {
+      const lastVenue = lastPage.venue.at(-1)
+      const loadedCount = allPages.reduce(
+        (total, page) => total + page.venue.length,
+        0,
+      )
+
+      if (!lastVenue) return undefined
+      if (lastPage.venueCount != null && loadedCount >= lastPage.venueCount) {
+        return undefined
+      }
+
+      return lastVenue.id
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
 export function venuesFromPages(
   data: { pages: VenuesPage[] } | undefined,
 ): venue[] {
@@ -170,7 +225,15 @@ export function venuesFromPages(
 export function venueCountFromPages(
   data: { pages: VenuesPage[] } | undefined,
 ): number | undefined {
-  return data?.pages.at(-1)?.venueCount
+  if (!data) return undefined
+
+  for (let index = data.pages.length - 1; index >= 0; index -= 1) {
+    const count = data.pages[index].venueCount
+
+    if (count != null) return count
+  }
+
+  return undefined
 }
 
 export interface VenuePageParams {

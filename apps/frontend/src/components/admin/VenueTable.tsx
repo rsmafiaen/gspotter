@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 
-import { ManagePricesDialog } from '#/components/admin/ManagePricesDialog'
 import { Button } from '#/components/ui/Button'
 import { ConfirmDialog } from '#/components/ui/ConfirmDialog'
 import { graphqlFetch } from '#/graphql/client'
@@ -21,7 +20,15 @@ function latestRegularPrice(current: venue) {
   )
 }
 
-export function VenueTable({ venues }: { venues: venue[] }) {
+interface VenueTableProps {
+  venues: venue[]
+  emptyMessage?: string
+}
+
+export function VenueTable({
+  venues,
+  emptyMessage = 'No venues have been added yet.',
+}: VenueTableProps) {
   const [venueToDelete, setVenueToDelete] = useState<venue | null>(null)
   const queryClient = useQueryClient()
 
@@ -56,7 +63,7 @@ export function VenueTable({ venues }: { venues: venue[] }) {
   if (venues.length === 0) {
     return (
       <p className="rounded-2xl bg-(--surface-strong) p-5 text-sm text-(--sea-ink-soft)">
-        No venues have been added yet.
+        {emptyMessage}
       </p>
     )
   }
@@ -107,27 +114,21 @@ export function VenueTable({ venues }: { venues: venue[] }) {
               return (
                 <tr key={current.id} className="transition-colors">
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <ManagePricesDialog venue={current} />
-                      <Button
-                        variant="danger"
-                        onClick={() => openConfirmation(current)}
-                        className="px-2.5 py-1.5 text-xs whitespace-nowrap"
-                      >
-                        Delete
-                      </Button>
-                    </div>
+                    <Button
+                      variant="danger"
+                      onClick={() => openConfirmation(current)}
+                      className="px-2.5 py-1.5 text-xs whitespace-nowrap"
+                    >
+                      Delete
+                    </Button>
                   </td>
                   <th
                     scope="row"
                     className="px-4 py-3 font-bold whitespace-nowrap"
                   >
                     <Link
-                      to="/$cityId/venues/$venueId"
-                      params={{
-                        cityId: current.city.id,
-                        venueId: current.id,
-                      }}
+                      to="/admin/venues/$venueId"
+                      params={{ venueId: current.id }}
                       className="text-(--lagoon-deep) hover:underline"
                     >
                       {current.name}

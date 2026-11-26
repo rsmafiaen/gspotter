@@ -61,9 +61,25 @@ export function renderWithProviders(
     path: '/$cityId/venues/$venueId',
     component: renderUi,
   })
+  const adminRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/admin',
+    component: renderUi,
+  })
+  const adminVenueRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/admin/venues/$venueId',
+    component: renderUi,
+  })
 
   const router = createRouter({
-    routeTree: rootRoute.addChildren([indexRoute, cityRoute, venueRoute]),
+    routeTree: rootRoute.addChildren([
+      indexRoute,
+      cityRoute,
+      venueRoute,
+      adminRoute,
+      adminVenueRoute,
+    ]),
     history: createMemoryHistory({ initialEntries: [route] }),
     defaultPendingMinMs: 0,
   })
